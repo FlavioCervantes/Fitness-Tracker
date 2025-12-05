@@ -1,0 +1,106 @@
+{
+  "workoutRoutines": [
+    {
+      "userId": 1,
+      "routineName": "Upper Body Strength",
+      "exerciseJSON": [
+        {
+          "exerciseId": 1,
+          "sets": 4,
+          "reps": 8,
+          "restSeconds": 120
+        },
+        {
+          "exerciseId": 4,
+          "sets": 3,
+          "reps": 8,
+          "restSeconds": 90
+        },
+        {
+          "exerciseId": 5,
+          "sets": 3,
+          "reps": 10,
+          "restSeconds": 90
+        },
+        {
+          "exerciseId": 2,
+          "sets": 3,
+          "reps": 12,
+          "restSeconds": 60
+        }
+      ]
+    },
+    {
+      "userId": 1,
+      "routineName": "Leg Day",
+      "exerciseJSON": [
+        {
+          "exerciseId": 3,
+          "sets": 5,
+          "reps": 5,
+          "restSeconds": 180
+        },
+        {
+          "exerciseId": 8,
+          "sets": 4,
+          "reps": 12,
+          "restSeconds": 90
+        },
+        {
+          "exerciseId": 6,
+          "sets": 3,
+          "reps": 8,
+          "restSeconds": 120
+        }
+      ]
+    },
+    {
+      "userId": 2,
+      "routineName": "Full Body Beginner",
+      "exerciseJSON": [
+        {
+          "exerciseId": 3,
+          "sets": 3,
+          "reps": 10,
+          "restSeconds": 90
+        },
+        {
+          "exerciseId": 1,
+          "sets": 3,
+          "reps": 10,
+          "restSeconds": 90
+        },
+        {
+          "exerciseId": 4,
+          "sets": 3,
+          "reps": 6,
+          "restSeconds": 90
+        },
+        {
+          "exerciseId": 9,
+          "sets": 3,
+          "reps": 30,
+          "restSeconds": 60
+        }
+      ]
+    },
+    {
+      "userId": 4,
+      "routineName": "Cardio + Core",
+      "exerciseJSON": [
+        {
+          "exerciseId": 10,
+          "sets": 1,
+          "reps": 1,
+          "durationMinutes": 30
+        },
+        {
+          "exerciseId": 9,
+          "sets": 4,
+          "reps": 60,
+          "restSeconds": 45
+        }
+      ]
+    }
+  ]
+}
