@@ -1,0 +1,91 @@
+
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Fitness Tracker Dashboard</title>
+  <link rel="stylesheet" href="/css/styles.css">
+  <style>
+
+    <body>
+
+           <%- include("partials/header.ejs") %>
+
+
+/* <!-- Daily Inspiration Card --> */
+  <section class="card" id="quote-card">
+    <h2>Daily Inspiration</h2>
+    <p id="insp-quote">Loading quote...</p>
+    <small id="quote-author"></small>
+  </section>
+
+/* <!-- Workout Logging Card --> */
+  <section class="card">
+    <h2> Log Your Workout</h2>
+    <form id="workout-form">
+        <div class="mb-3">
+            <div class = "col">
+                <label>Date
+                    <input type="date" id="workout-date" class="form-control" required>
+                </label>
+            </div>
+        </div class = "mb-3">
+        <label> Duration (minutes):
+            <input type="number" id="workout-duration" class="form-control" required>
+        </label>
+        </div>
+
+/* <!-- Exercise List --> */
+      <h3>Exercises (you must add at least one)</h3>
+      <div id="exercise-list"></div>
+
+      <button type="button" id="add-exercise-btn">Add Exercise</button>
+      <button type="submit">Save Workout</button>
+    </form>
+  </section>
+
+    <section class="card">
+        <h2> Update Profile </h2>
+        <form id ="profile-form">
+            <label> email: <input type="email" id="profile-email" class="form-control" required></label>
+            <label>
+                <label> Height (inches):
+                    <input type="number" id="profile-height" class="form-control" required>
+                </label>
+            <label> Weight (lbs):
+                <input type="number" id="profile-weight" class="form-control" required> 
+            </label>
+            <button type="submit">Update Profile</button>
+        </form>
+    </section>
+
+/* <!-- Workout History Card --> */
+
+  <section class="card">
+    <h2>Recent Workouts</h2>
+    <div id="recent-workouts">
+        /* only run block if workouts exists and has items. */
+      <% if (workouts && workouts.length) { %>
+        <ul>
+            /* iterate over workouts array */
+          <% workouts.forEach(function(w){ %>
+            <li>
+              <strong><%= w.date %></strong> — <%= w.routine_name || 'No name' %>
+              (<%= w.duration_minutes || '—' %> min) 
+              <button class="secondary view-workout-btn" data-id="<%= w.id %>">View/Edit</button>
+            </li>
+          <% }) %>
+        </ul>
+      <% } else { %>
+        <p>No workouts yet. Log your first workout above.</p>
+      <% } %>
+    </div>
+  </section>
+
+
+
+
+                <%- include("partials/footer.ejs") %>
+  /* <script src="/js/main.js"></script> */
+</body>
+</html>
