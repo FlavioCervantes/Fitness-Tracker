@@ -1,0 +1,258 @@
+/* Custom Styles for Famous Quotes Admin */
+
+body {
+    font-family: 'monospace', 'Times New Roman', Times, serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.container {
+    background-color: white;
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+h1, h2, h3 {
+    color: #667eea;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+.navbar {
+    background: linear-gradient(90deg, #667eea 0%, #7646a7 100%) !important;
+    padding: 15px 0;
+    border-radius: 10px;
+    margin-bottom: 30px;
+}
+
+.navbar-brand {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.navbar a {
+    color: white !important;
+    transition: all 0.3s ease;
+}
+
+ /* Navbar Links Hover Effect */
+.navbar a:hover {
+    transform: scale(1.05);
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+ /* BTN Styles */
+.btn-primary {
+    background: linear-gradient(90deg, #667eea 0%, #713fa3 100%);
+    border: none;
+    padding: 10px 25px;
+    border-radius: 25px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+.btn-warning {
+    border-radius: 25px;
+    padding: 10px 25px;
+    font-weight: bold;
+}
+
+.btn-danger {
+    border-radius: 25px;
+    padding: 10px 25px;
+    font-weight: bold;
+}
+
+.btn-success {
+    background: linear-gradient(90deg, #11998e 0%, #10bd10 100%);
+    border: none;
+    border-radius: 25px;
+    padding: 10px 25px;
+    font-weight: bold;
+}
+
+.btn-success:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(56, 239, 125, 0.4);
+}
+
+ /* Card Enhancement */
+.card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    margin-bottom: 20px;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.card-header {
+    background: linear-gradient(90deg, #667eea 0%, #5f338a 100%);
+    color: white;
+    font-weight: bold;
+    border-radius: 15px 15px 0 0 !important;
+}
+
+.table {
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.table thead {
+    background: linear-gradient(90deg, #667eea 0%, #61328f 100%);
+    color: white;
+}
+
+.table-hover tbody tr:hover {
+    background-color: #f8f9ff;
+}
+/* Lets enhance the forms */
+.form-control, .form-select {
+    border-radius: 10px;
+    border: 2px solid #e0e0e0;
+    padding: 12px;
+    transition: all 0.4s ;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #667eea;
+    box-shadow: 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+.form-label {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 8px;
+}
+
+ /* Round the borders and enhance the quote cards appearance */
+.quote-card {
+    background: linear-gradient(135deg, #f5f7fa 0%, #8c3bb1 100%);
+    padding: 20px;
+    border-radius: 15px;
+    margin-bottom: 20px;
+    border-left: 5px solid #667eea;
+}
+
+.quote-text {
+    font-style: italic;
+    font-size: 1.1rem;
+    color: #0f0f0f;
+    margin-bottom: 10px;
+}
+
+.author-name {
+    color: #e4e5e9;
+    font-weight: bold;
+}
+
+
+/* -- Admin Pages --> */
+.admin-card {
+    text-align: center;
+    padding: 40px;
+    transition: all 0.3s ease;
+}
+
+.admin-card:hover {
+    transform: scale(1.05);
+}
+/* -- Icons Integrations Settings --> */ 
+.admin-card i {
+    font-size: 3rem;
+    margin-bottom: 20px;
+    color: #eaeaec;
+}
+
+footer {
+    text-align: center;
+    padding: 20px;
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 10px;
+    margin-top: 30px;
+    color: #666;
+}
+
+.alert {
+    border-radius: 10px;
+    border: none;
+}
+
+.badge {
+    padding: 8px 15px;
+    border-radius: 20px;
+}
+
+textarea.form-control {
+    min-height: 150px;
+}
+
+.search-form {
+    background-color: #5765b8;
+    padding: 20px;
+    border-radius: 15px;
+    margin-bottom: 20px;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+
+
+/* Mobile Responsiveness */
+@media (max-width: 500px) {
+    .action-buttons {
+        flex-direction: column;
+    }
+    
+    .admin-card {
+        padding: 20px;
+    }
+}
+
+/* Modal Scrollbar Styling */
+.modal-body {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+#authorInfo {
+    max-height: 100%;
+    background: whitesmoke;
+    
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+    width: 12px;  /* Width of vertical scrollbar */
+    height: 12px; /* Height of horizontal scrollbar */
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;  /* Light gray background */
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+}
