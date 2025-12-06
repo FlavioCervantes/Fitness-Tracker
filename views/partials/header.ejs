@@ -1,0 +1,8 @@
+  <header>
+    <h1>Fitness Tracker</h1>
+    <div>
+      <% if (currentUser) { %>
+        <div>Signed in as <strong><%= currentUser.name || currentUser.email %></strong></div>
+      <% } %>
+    </div>
+  </header>
