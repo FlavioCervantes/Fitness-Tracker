@@ -2,12 +2,20 @@ import express from 'express';
 import mysql from 'mysql2/promise';
 import bcrypt from 'bcrypt';
 import fetch from 'node-fetch';
+import session from 'express-session';
 
 const app = express();
+const PORT = process.env.PORT || 3000;
 
 app.set("view engine", "ejs");
 app.use(express.static("public"));
 app.use(express.urlencoded({ extended: true }));
+app.use(session({
+    secret: process.env.SESSION_SECRET || 'fitness-tracker-secret-key-change-in-production',
+    resave: false,
+    saveUninitialized: false,
+    cookie: { secure: false, maxAge: 24 * 60 * 60 * 1000 } // 24 hours
+}));
 
 //setting up database connection pool
 const pool = mysql.createPool({
@@ -124,7 +132,7 @@ app.post("/register", async (req, res) => {
 
 // route for login page
 app.get("/login", (req, res) => {
-    res.render("login", { error: null });
+    res.render("logIn", { error: null });
 });
 
 // route to login
@@ -139,19 +147,19 @@ app.post("/login", async (req, res) => {
         const [users] = await pool.query(sql, [email]);
         
         if (users.length === 0) {
-            return res.render("login", { error: "Invalid credentials" });
+            return res.render("logIn", { error: "Invalid credentials" });
         }
         
         const user = users[0];
         const match = await bcrypt.compare(password, user.password);
         
         if (!match) {
-            return res.render("login", { error: "Invalid credentials" });
+            return res.render("logIn", { error: "Invalid credentials" });
         }
         
         // Check account status
         if (user.accountStatus === 'disabled') {
-            return res.render("login", { error: "Account has been disabled" });
+            return res.render("logIn", { error: "Account has been disabled" });
         }
         
         // Create session
@@ -171,7 +179,7 @@ app.post("/login", async (req, res) => {
     } 
     catch (error) {
         console.error("Login error:", error);
-        res.render("login", { error: "Login failed" });
+        res.render("logIn", { error: "Login failed" });
     }
 });
 

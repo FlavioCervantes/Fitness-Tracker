@@ -1,0 +1,42 @@
+<!-- // shows muscle groups and exercises, equipment, insturctions, imageURL from API (apisource) -->
+<doctype html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Exercise Library</title>
+        <link rel="stylesheet" href="/css/styles.css">
+    </head>
+    <body>
+        <%- include("partials/header.ejs") %>
+
+        <nav class="navbar navbar-expand-lg">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="/"> Fitness Tracker</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/dashboard">Dashboard</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/exercises">Exercise Library</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/logout">Logout</a>
+                        </li>   
+                    </ul>
+                </div>
+            </div>
+        </nav>  
+        <div class="container mt-4">
+            <h1 class="mb-4">Exercise Library</h1>
+            <div id="exercise-container" class="row">
+                <!-- Exercises will be dynamically loaded here -->
+            </div>
+        </div>
+        <%- include("partials/footer.ejs") %>
+    </body>
+</html>
