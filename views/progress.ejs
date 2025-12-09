@@ -1,0 +1,158 @@
+<%- include("partials/header.ejs") %>
+
+<div class="container my-5">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="display-6 fw-bold">
+                <i class="bi bi-graph-up text-primary me-2"></i>
+                Track Your Progress
+            </h1>
+            <p class="text-muted">Monitor your body measurements over time</p>
+        </div>
+    </div>
+
+    <!-- add new progress -->
+    <div class="row mb-4">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-plus-circle me-2"></i>Add New Measurement
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form id="progress-form">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="chestDiameter" class="form-label">Chest (cm)</label>
+                                <input type="number" class="form-control" id="chestDiameter" name="chestDiameter" step="0.1" min="0">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="armDiameter" class="form-label">Arm (cm)</label>
+                                <input type="number" class="form-control" id="armDiameter" name="armDiameter" step="0.1" min="0">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="shoulderDiameter" class="form-label">Shoulder (cm)</label>
+                                <input type="number" class="form-control" id="shoulderDiameter" name="shoulderDiameter" step="0.1" min="0">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="legDiameter" class="form-label">Leg (cm)</label>
+                                <input type="number" class="form-control" id="legDiameter" name="legDiameter" step="0.1" min="0">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="hipDiameter" class="form-label">Hip (cm)</label>
+                                <input type="number" class="form-control" id="hipDiameter" name="hipDiameter" step="0.1" min="0">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="recordedDate" class="form-label">Date</label>
+                                <input type="date" class="form-control" id="recordedDate" name="recordedDate" required>
+                            </div>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="bi bi-save me-2"></i>Save Measurement
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- history -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light">
+                    <h4 class="mb-0">
+                        <i class="bi bi-clock-history me-2"></i>Measurement History
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <% if (progressData && progressData.length > 0) { %>
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Chest</th>
+                                        <th>Arms</th>
+                                        <th>Shoulders</th>
+                                        <th>Legs</th>
+                                        <th>Hips</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% progressData.forEach(function(progress) { %>
+                                        <tr>
+                                            <td><%= new Date(progress.recordedDate).toLocaleDateString() %></td>
+                                            <td><%= progress.chestDiameter || '-' %> cm</td>
+                                            <td><%= progress.armDiameter || '-' %> cm</td>
+                                            <td><%= progress.shoulderDiameter || '-' %> cm</td>
+                                            <td><%= progress.legDiameter || '-' %> cm</td>
+                                            <td><%= progress.hipDiameter || '-' %> cm</td>
+                                        </tr>
+                                    <% }); %>
+                                </tbody>
+                            </table>
+                        </div>
+                    <% } else { %>
+                        <div class="text-center py-5">
+                            <i class="bi bi-graph-up" style="font-size: 3rem; color: #ccc;"></i>
+                            <p class="text-muted mt-3">No measurements yet. Add your first measurement above!</p>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// hndle progress form submission
+document.getElementById('progress-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const formData = {
+        chestDiameter: document.getElementById('chestDiameter').value || null,
+        armDiameter: document.getElementById('armDiameter').value || null,
+        shoulderDiameter: document.getElementById('shoulderDiameter').value || null,
+        legDiameter: document.getElementById('legDiameter').value || null,
+        hipDiameter: document.getElementById('hipDiameter').value || null,
+        recordedDate: document.getElementById('recordedDate').value
+    };
+    
+    try {
+        const response = await fetch('/progress/add', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            alert('Progress saved successfully!');
+            location.reload();
+        } else {
+            alert('Failed to save progress. Please try again.');
+        }
+    } 
+		catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred. Please try again.');
+    }
+});
+
+// set current default
+document.getElementById('recordedDate').valueAsDate = new Date();
+</script>
+
+<%- include("partials/footer.ejs") %>
