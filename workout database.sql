@@ -9,6 +9,7 @@ CREATE TABLE userInfo (
     createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- keeps track of user's progress
 CREATE TABLE userProgress (
     progressId INT PRIMARY KEY AUTO_INCREMENT,
     userId INT NOT NULL,
@@ -21,6 +22,7 @@ CREATE TABLE userProgress (
     FOREIGN KEY (userId) REFERENCES userInfo(userId) ON DELETE CASCADE
 );
 
+-- keeps information on the muscle group
 CREATE TABLE exercises (
     exerciseId INT PRIMARY KEY AUTO_INCREMENT,
     nameOfExercise VARCHAR(150) NOT NULL,
@@ -31,6 +33,7 @@ CREATE TABLE exercises (
     apiSource VARCHAR(100)
 );
 
+-- journal of the user's workout sessions
 CREATE TABLE workouts (
     workoutId INT PRIMARY KEY AUTO_INCREMENT,
     userId INT NOT NULL,
@@ -51,6 +54,7 @@ CREATE TABLE workoutGroups (
     FOREIGN KEY (exerciseId) REFERENCES exercises(exerciseId) ON DELETE CASCADE
 );
 
+-- keeps a template of the user's routine workout to be followed again
 CREATE TABLE workoutRoutine (
     routineId INT PRIMARY KEY AUTO_INCREMENT,
     userId INT NOT NULL,
@@ -60,12 +64,14 @@ CREATE TABLE workoutRoutine (
     FOREIGN KEY (userId) REFERENCES userInfo(userId) ON DELETE CASCADE
 );
 
+-- template of user profiles
 INSERT INTO userInfo (name, email, password, height, weight, goals) VALUES
 ('John Doe', 'john.doe@email.com', 'password1', 180.00, 85.50, 'Build muscle mass and increase strength'),
 ('Jane Smith', 'jane.smith@email.com', 'password2', 165.00, 62.00, 'Lose weight and improve cardiovascular health'),
 ('James Johnson', 'mike.j@email.com', 'password3', 175.00, 78.00, 'Maintain fitness and flexibility'),
 ('Sarah Vasquez', 'sarah.v@email.com', 'password4', 170.00, 68.50, 'Train for marathon and endurance');
 
+-- keeps track of the user's physical progress
 INSERT INTO userProgress (userId, chestDiameter, armDiameter, shoulderDiameter, legDiameter, hipDiameter, recordedDate) VALUES
 (1, 102.00, 35.50, 48.00, 58.00, 95.00, '2024-01-15'),
 (1, 104.00, 36.00, 49.00, 59.00, 94.50, '2024-02-15'),
@@ -74,6 +80,7 @@ INSERT INTO userProgress (userId, chestDiameter, armDiameter, shoulderDiameter, 
 (3, 98.00, 33.00, 46.00, 56.00, 93.00, '2024-01-20'),
 (4, 90.00, 29.00, 43.00, 54.00, 94.00, '2024-01-25');
 
+-- a template of different workouts
 INSERT INTO exercises (nameOfExercise, muscleGroup, equipment, instructions, imageURL, apiSource) VALUES
 ('Barbell Bench Press', 'Chest', 'Barbell', 'Lie on bench, lower bar to chest, press up to full extension', 'https://example.com/bench-press.jpg', 'ExerciseDB'),
 ('Dumbbell Bicep Curl', 'Biceps', 'Dumbbells', 'Stand with dumbbells, curl weights up to shoulders, lower slowly', 'https://example.com/bicep-curl.jpg', 'ExerciseDB'),
@@ -86,6 +93,7 @@ INSERT INTO exercises (nameOfExercise, muscleGroup, equipment, instructions, ima
 ('Plank', 'Core', 'Bodyweight', 'Hold body straight in push-up position on forearms', 'https://example.com/plank.jpg', 'ExerciseDB'),
 ('Running', 'Cardio', 'Treadmill', 'Maintain steady pace for cardiovascular conditioning', 'https://example.com/running.jpg', 'Manual');
 
+-- a log of workouts performed by user
 INSERT INTO workouts (userId, date, duration) VALUES
 (1, '2024-11-28', 60),
 (1, '2024-11-30', 45),
@@ -93,17 +101,17 @@ INSERT INTO workouts (userId, date, duration) VALUES
 (3, '2024-11-27', 55),
 (4, '2024-11-28', 70);
 
-INSERT INTO workoutGroups (workoutId, muscleGroup, exerciseId, sets, reps, weight) VALUES
-(1, 'Chest', 1, 4, 8, 80.00),
-(1, 'Biceps', 2, 3, 12, 15.00),
-(1, 'Triceps', 7, 3, 10, 0.00),
-(2, 'Legs', 3, 4, 10, 100.00),
-(2, 'Legs', 8, 3, 12, 150.00),
-(3, 'Back', 4, 3, 8, 0.00),
-(3, 'Shoulders', 5, 3, 10, 20.00),
-(4, 'Back', 6, 4, 6, 120.00),
-(4, 'Core', 9, 3, 60, 0.00),
-(5, 'Cardio', 10, 1, 1, 0.00);
+INSERT INTO workoutGroups (workoutId, exerciseId, sets, reps, weight) VALUES
+(1, 1, 4, 8, 80.00),
+(1, 2, 3, 12, 15.00),
+(1, 7, 3, 10, 0.00),
+(2, 3, 4, 10, 100.00),
+(2, 8, 3, 12, 150.00),
+(3, 4, 3, 8, 0.00),
+(3, 5, 3, 10, 20.00),
+(4, 6, 4, 6, 120.00),
+(4, 9, 3, 60, 0.00),
+(5, 10, 1, 1, 0.00);
 
 SELECT 'UserInfo Count:' as Info, COUNT(*) as Count FROM userInfo;
 SELECT 'Exercises Count:' as Info, COUNT(*) as Count FROM exercises;
