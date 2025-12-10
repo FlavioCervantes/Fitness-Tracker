@@ -6,10 +6,17 @@ import fetch from 'node-fetch';
 import session from 'express-session';
 
 const app = express();
-// const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3000;
+
 app.set("view engine", "ejs");
 app.use(express.static("public"));
 app.use(express.urlencoded({ extended: true }));
+app.use(session({
+    secret: process.env.SESSION_SECRET || 'fitness-tracker-secret-key-change-in-production',
+    resave: false,
+    saveUninitialized: false,
+    cookie: { secure: false, maxAge: 24 * 60 * 60 * 1000 } // 24 hours
+}));
 
 app.use(express.json());
 
@@ -159,7 +166,7 @@ app.post("/register", async (req, res) => {
 
 // route to login
 app.get("/login", (req, res) => {
-    res.render("login", { error: null });
+    res.render("logIn", { error: null });
 });
 
 // route to verify login info
@@ -177,7 +184,7 @@ app.post("/login", async (req, res) => {
 
         // Check if user exists
         if (users.length === 0) {
-            return res.render("login", { error: "Invalid email or password" });
+            return res.render("logIn", { error: "Invalid credentials" });
         }
 
         const user = users[0];
@@ -186,10 +193,15 @@ app.post("/login", async (req, res) => {
         const match = await bcrypt.compare(password, user.password);
 
         if (!match) {
-            return res.render("login", { error: "Invalid email or password" });
+            return res.render("logIn", { error: "Invalid credentials" });
         }
-
-        // create session
+        
+        // Check account status
+        if (user.accountStatus === 'disabled') {
+            return res.render("logIn", { error: "Account has been disabled" });
+        }
+        
+        // Create session
         req.session.userId = user.userId;
         req.session.userName = user.name;
         req.session.userEmail = user.email;
@@ -199,7 +211,7 @@ app.post("/login", async (req, res) => {
     }
     catch (error) {
         console.error("Login error:", error);
-        res.render("login", { error: "Login failed. Please try again." });
+        res.render("logIn", { error: "Login failed" });
     }
 });
 
