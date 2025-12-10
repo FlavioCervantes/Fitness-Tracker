@@ -1,128 +1,42 @@
-<%- include("partials/header") %>
+<!-- // shows muscle groups and exercises, equipment, insturctions, imageURL from API (apisource) -->
+<doctype html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Exercise Library</title>
+        <link rel="stylesheet" href="/css/styles.css">
+    </head>
+    <body>
+        <%- include("partials/header.ejs") %>
 
-<div class="container my-5">
-    <div class="row mb-4">
-        <div class="col">
-            <h1 class="display-6 fw-bold">
-                <i class="bi bi-book text-primary me-2"></i>
-                Exercise Library
-            </h1>
-            <p class="text-muted">Browse our collection of exercises with instructions and techniques</p>
-        </div>
-    </div>
-
-    <!-- Search and Filter -->
-    <div class="row mb-4">
-        <div class="col-md-6 mb-3">
-            <input type="text" id="search-exercises" class="form-control" 
-                   placeholder="Search exercises...">
-        </div>
-        <div class="col-md-6 mb-3">
-            <select id="filter-muscle-group" class="form-select">
-                <option value="">All Muscle Groups</option>
-                <% if (muscleGroups && muscleGroups.length > 0) { %>
-                    <% muscleGroups.forEach(function(mg) { %>
-                        <option value="<%= mg.muscleGroup %>"><%= mg.muscleGroup %></option>
-                    <% }) %>
-                <% } %>
-            </select>
-        </div>
-    </div>
-
-    <!-- Exercise Cards -->
-    <div class="row" id="exercise-grid">
-        <% if (exercises && exercises.length > 0) { %>
-            <% exercises.forEach(function(ex) { %>
-                <div class="col-md-6 col-lg-4 mb-4 exercise-card" 
-                     data-muscle-group="<%= ex.muscleGroup %>"
-                     data-exercise-name="<%= ex.nameOfExercise.toLowerCase() %>">
-                    <div class="card h-100 border-0 shadow-sm">
-                        <% if (ex.imageURL && ex.imageURL !== 'https://example.com/bench-press.jpg') { %>
-                            <img src="<%= ex.imageURL %>" class="card-img-top" 
-                                 alt="<%= ex.nameOfExercise %>" style="height: 200px; object-fit: cover;">
-                        <% } else { %>
-                            <div class="card-img-top bg-light d-flex align-items-center justify-content-center" 
-                                 style="height: 200px;">
-                                <i class="bi bi-image text-muted" style="font-size: 3rem;"></i>
-                            </div>
-                        <% } %>
-                        
-                        <div class="card-body">
-                            <h5 class="card-title"><%= ex.nameOfExercise %></h5>
-                            
-                            <div class="mb-3">
-                                <span class="badge bg-primary me-2">
-                                    <i class="bi bi-bullseye me-1"></i><%= ex.muscleGroup %>
-                                </span>
-                                <% if (ex.equipment) { %>
-                                    <span class="badge bg-secondary">
-                                        <i class="bi bi-tools me-1"></i><%= ex.equipment %>
-                                    </span>
-                                <% } %>
-                                <% if (ex.difficultyLevel) { %>
-                                    <span class="badge bg-<%= 
-                                        ex.difficultyLevel === 'beginner' ? 'success' : 
-                                        ex.difficultyLevel === 'intermediate' ? 'warning' : 'danger' 
-                                    %> mt-1">
-                                        <%= ex.difficultyLevel %>
-                                    </span>
-                                <% } %>
-                            </div>
-                            
-                            <% if (ex.instructions) { %>
-                                <p class="card-text text-muted small"><%= ex.instructions %></p>
-                            <% } %>
-                            
-                            <% if (ex.apiSource) { %>
-                                <small class="text-muted">
-                                    <i class="bi bi-info-circle me-1"></i>Source: <%= ex.apiSource %>
-                                </small>
-                            <% } %>
-                        </div>
-                    </div>
-                </div>
-            <% }) %>
-        <% } else { %>
-            <div class="col-12">
-                <div class="text-center py-5">
-                    <i class="bi bi-inbox text-muted" style="font-size: 5rem;"></i>
-                    <h3 class="mt-4">No exercises found</h3>
+        <nav class="navbar navbar-expand-lg">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="/"> Fitness Tracker</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/dashboard">Dashboard</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/exercises">Exercise Library</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/logout">Logout</a>
+                        </li>   
+                    </ul>
                 </div>
             </div>
-        <% } %>
-    </div>
-</div>
-
-<script>
-// Search functionality
-document.getElementById('search-exercises').addEventListener('input', function(e) {
-    const searchTerm = e.target.value.toLowerCase();
-    filterExercises();
-});
-
-// Filter by muscle group
-document.getElementById('filter-muscle-group').addEventListener('change', function(e) {
-    filterExercises();
-});
-
-function filterExercises() {
-    const searchTerm = document.getElementById('search-exercises').value.toLowerCase();
-    const muscleGroup = document.getElementById('filter-muscle-group').value;
-    
-    document.querySelectorAll('.exercise-card').forEach(card => {
-        const exerciseName = card.dataset.exerciseName;
-        const cardMuscleGroup = card.dataset.muscleGroup;
-        
-        const matchesSearch = exerciseName.includes(searchTerm);
-        const matchesMuscle = !muscleGroup || cardMuscleGroup === muscleGroup;
-        
-        if (matchesSearch && matchesMuscle) {
-            card.style.display = '';
-        } else {
-            card.style.display = 'none';
-        }
-    });
-}
-</script>
-
-<%- include("partials/footer") %>
+        </nav>  
+        <div class="container mt-4">
+            <h1 class="mb-4">Exercise Library</h1>
+            <div id="exercise-container" class="row">
+                <!-- Exercises will be dynamically loaded here -->
+            </div>
+        </div>
+        <%- include("partials/footer.ejs") %>
+    </body>
+</html>
