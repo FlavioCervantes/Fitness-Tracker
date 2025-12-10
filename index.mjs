@@ -1,3 +1,4 @@
+
 import express from 'express';
 import mysql from 'mysql2/promise';
 import bcrypt from 'bcrypt';
@@ -17,7 +18,21 @@ app.use(session({
     cookie: { secure: false, maxAge: 24 * 60 * 60 * 1000 } // 24 hours
 }));
 
-//setting up database connection pool
+app.use(express.json());
+
+// Configure session middleware for user authentication
+app.use(session({
+    secret: process.env.SESSION_SECRET || 'fitness-tracker-secret-key-change-in-production',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        secure: false, 
+        httpOnly: true,
+        maxAge: 1000 * 60 * 60 * 24
+    }
+}));
+
+// connect to DB
 const pool = mysql.createPool({
     host: "y5s2h87f6ur56vae.cbetxkdyhwsb.us-east-1.rds.amazonaws.com",
     user: "x961annv2rwlrope",
@@ -27,132 +42,156 @@ const pool = mysql.createPool({
     waitForConnections: true
 });
 
-
-// Test database connection
-app.get("/dbTest", async (req, res) => {
-    try {
-        let sql = "SELECT CURDATE()";
-        const [rows] = await pool.query(sql);
-        res.send(rows);
-    } 
-    catch (err) {
-        console.error("Database error:", err);
-        res.status(500).send("Database error");
-    }
-});
-
+// verify authentication
 function isAuthenticated(req, res, next) {
+    // ceck if session exists and has userId
     if (req.session && req.session.userId) {
-        return next();
+        return next(); // User is authenticated, proceed to route
     }
+    // redirect to login page
     res.redirect('/login');
 }
 
-// fetch motivational quote from API
 async function motivationalQuote() {
     try {
+        // API for quotes
         const response = await fetch('https://api.quotable.io/random?tags=inspirational');
         const data = await response.json();
-        return { content: data.content, author: data.author };
-    } 
-    catch (error) {
+        
         return { 
-            content: "The only bad workout is the one that didn't happen.", 
-            author: "Unknown" 
+            content: data.content, 
+            author: data.author 
+        };
+    }
+    catch (error) {
+        // default quote if unable to get from API
+        console.error("Quote API error:", error);
+        return {
+            content: "The only bad workout is the one that didn't happen.",
+            author: "Unknown"
         };
     }
 }
 
-// Homepage
-app.get("/", async (req, res) => {
-    const quote = await motivationalQuote();
-    res.render("index", { 
-        user: req.session.userId ? req.session : null, 
-        quote 
-    });
+// route to test connection to DB
+app.get("/dbTest", async (req, res) => {
+    try {
+        let sql = "SELECT CURDATE() as currentDate";
+        const [rows] = await pool.query(sql);
+        
+        res.send(rows);
+    } 
+		catch (error) {
+        console.error("Database test error:", error);
+        res.status(500).send("Database connection failed");
+    }
 });
 
-// Registration Page
+// route to home page
+app.get("/", async (req, res) => {
+    try {
+        // fetch motivational quote from API
+        const quote = await motivationalQuote();
+        
+        res.render("index", {
+            user: req.session.userId ? req.session : null,
+            quote
+        });
+    } 
+		catch (error) {
+        console.error("Homepage error:", error);
+        res.status(500).send("Error loading homepage");
+    }
+});
+
+// route for user to go to registration form 
 app.get("/register", (req, res) => {
     res.render("register", { error: null });
 });
 
-// Registration Form Submission
+// route to post info from registration form 
 app.post("/register", async (req, res) => {
     const { name, email, password, confirmPassword, height, weight, goals } = req.body;
-    
+
     try {
-        // Validation
+        // ensure all fields required is filled
         if (!name || !email || !password) {
-            return res.render("register", { error: "All fields required" });
+            return res.render("register", { error: "All required fields must be filled" });
         }
-        
+
+        // ensure passwords match
         if (password !== confirmPassword) {
             return res.render("register", { error: "Passwords don't match" });
         }
-        
-        // Check if email exists
+
+        // check if user's email already exists
         let sql = `
             SELECT userId 
             FROM userInfo 
             WHERE email = ?`;
         const [existing] = await pool.query(sql, [email]);
-        
+
         if (existing.length > 0) {
             return res.render("register", { error: "Email already registered" });
         }
-        
-        // Hash password and insert user
+
         const hashedPassword = await bcrypt.hash(password, 10);
-        
+
+        // Insert new user into database
         sql = `
             INSERT INTO userInfo (name, email, password, height, weight, goals) 
             VALUES (?, ?, ?, ?, ?, ?)`;
         const [result] = await pool.query(sql, [
-            name, 
-            email, 
-            hashedPassword, 
-            height || null, 
-            weight || null, 
-            goals || null
+            name,
+            email,
+            hashedPassword,
+            height || null,  
+            weight || null,  
+            goals || null    
         ]);
-        
-        // Create session
+
+        // new session for newly registered user
         req.session.userId = result.insertId;
         req.session.userName = name;
         req.session.userEmail = email;
-        
+
+        // direct to dashboard
         res.redirect("/dashboard");
-    } 
+    }
     catch (error) {
         console.error("Registration error:", error);
-        res.render("register", { error: "Registration failed" });
+        res.render("register", { error: "Registration failed. Please try again." });
     }
 });
 
-// route for login page
+// route to login
 app.get("/login", (req, res) => {
     res.render("logIn", { error: null });
 });
 
-// route to login
+// route to verify login info
 app.post("/login", async (req, res) => {
+    // get login credentials
     const { email, password } = req.body;
-    
+
     try {
+        // search DB for entered email
         let sql = `
-            SELECT * 
+            SELECT userId, name, email, password 
             FROM userInfo 
             WHERE email = ?`;
         const [users] = await pool.query(sql, [email]);
-        
+
+        // Check if user exists
         if (users.length === 0) {
             return res.render("logIn", { error: "Invalid credentials" });
         }
-        
+
         const user = users[0];
+
+        // check if passwords match
         const match = await bcrypt.compare(password, user.password);
-        
+
         if (!match) {
             return res.render("logIn", { error: "Invalid credentials" });
         }
@@ -166,52 +205,47 @@ app.post("/login", async (req, res) => {
         req.session.userId = user.userId;
         req.session.userName = user.name;
         req.session.userEmail = user.email;
-        req.session.isAdmin = user.isAdmin;
-        
-        // Update last login
-        sql = `
-            UPDATE userInfo 
-            SET lastLogin = NOW() 
-            WHERE userId = ?`;
-        await pool.query(sql, [user.userId]);
-        
+
+        // go to dashboard after loggin in
         res.redirect("/dashboard");
-    } 
+    }
     catch (error) {
         console.error("Login error:", error);
         res.render("logIn", { error: "Login failed" });
     }
 });
 
-// Logout
+// route for user to logout
 app.get("/logout", (req, res) => {
-    req.session.destroy(() => res.redirect("/"));
+    req.session.destroy(() => {
+        res.redirect("/");
+    });
 });
 
-// User Dashboard
+// route to user's dashboard
 app.get("/dashboard", isAuthenticated, async (req, res) => {
     try {
-        // Get user info
+        // to get user info
         let sql = `
-            SELECT * 
+            SELECT userId, name, email, height, weight, goals, createdAt 
             FROM userInfo 
             WHERE userId = ?`;
         const [userInfo] = await pool.query(sql, [req.session.userId]);
-        
-        // Get recent workouts with exercise count and total volume
+
+        // to get recent workout stats
         sql = `
-            SELECT w.*, 
+            SELECT w.workoutId, w.date, w.duration,
                    COUNT(DISTINCT wg.exerciseId) as exerciseCount,
                    SUM(wg.sets * wg.reps * wg.weight) as totalVolume
             FROM workouts w
             LEFT JOIN workoutGroups wg ON w.workoutId = wg.workoutId
             WHERE w.userId = ?
-            GROUP BY w.workoutId
+            GROUP BY w.workoutId, w.date, w.duration
             ORDER BY w.date DESC
             LIMIT 5`;
         const [workouts] = await pool.query(sql, [req.session.userId]);
-        
-        // Get workout statistics
+
+        // to get workout stats
         sql = `
             SELECT 
                 COUNT(DISTINCT workoutId) as totalWorkouts,
@@ -220,67 +254,69 @@ app.get("/dashboard", isAuthenticated, async (req, res) => {
             FROM workouts 
             WHERE userId = ?`;
         const [stats] = await pool.query(sql, [req.session.userId]);
-        
-        // Get motivational quote
+
+        // fetch quote from API
         const quote = await motivationalQuote();
-        
+
+        // load dashboard with info
         res.render("dashboard", {
             user: userInfo[0],
             workouts: workouts,
             stats: stats[0],
             quote: quote
         });
-    } 
+    }
     catch (error) {
         console.error("Dashboard error:", error);
         res.status(500).send("Error loading dashboard");
     }
 });
 
-// route to workout page
+// route to display workout log
 app.get("/workout/log", isAuthenticated, async (req, res) => {
     try {
         let sql = `
-            SELECT * 
+            SELECT exerciseId, nameOfExercise, muscleGroup, equipment, imageURL 
             FROM exercises 
             ORDER BY muscleGroup, nameOfExercise`;
         const [exercises] = await pool.query(sql);
-        
-        res.render("log-workout", { 
-            user: req.session, 
-            exercises: exercises 
+
+        // load the workout log
+        res.render("log-workout", {
+            user: req.session,
+            exercises: exercises
         });
-    } 
+    }
     catch (error) {
-        console.error("Log workout error:", error);
+        console.error("Log workout page error:", error);
         res.status(500).send("Error loading workout form");
     }
 });
 
-// Submit Workout
+// route to post a workout (to be referred to later)
 app.post("/workout/log", isAuthenticated, async (req, res) => {
     const { date, duration, exercises } = req.body;
-    
+
     try {
-        // Insert workout
         let sql = `
             INSERT INTO workouts (userId, date, duration) 
             VALUES (?, ?, ?)`;
         const [result] = await pool.query(sql, [
-            req.session.userId, 
-            date, 
+            req.session.userId,
+            date,
             duration
         ]);
-        
+
         const workoutId = result.insertId;
-        
-        // Insert exercise groups
+
+        // if exercise selected, choose a group
         if (exercises && Array.isArray(exercises)) {
             sql = `
                 INSERT INTO workoutGroups 
                 (workoutId, muscleGroup, exerciseId, sets, reps, weight) 
                 VALUES (?, ?, ?, ?, ?, ?)`;
-            
+
+            // Loop through each exercise and insert into workoutGroups
             for (const ex of exercises) {
                 await pool.query(sql, [
                     workoutId,
@@ -292,103 +328,109 @@ app.post("/workout/log", isAuthenticated, async (req, res) => {
                 ]);
             }
         }
-        
+
         res.json({ success: true, workoutId: workoutId });
-    } 
+    }
     catch (error) {
-        console.error("Log workout error:", error);
-        res.status(500).json({ success: false });
+        console.error("Log workout submission error:", error);
+        res.status(500).json({ success: false, error: "Failed to save workout" });
     }
 });
 
-// route to get workout history
+// route to get user's workout history
 app.get("/workout/history", isAuthenticated, async (req, res) => {
     try {
         let sql = `
-            SELECT w.*, 
+            SELECT w.workoutId, w.date, w.duration,
                    GROUP_CONCAT(DISTINCT e.nameOfExercise SEPARATOR ', ') as exercises,
                    SUM(wg.sets * wg.reps * wg.weight) as totalVolume
             FROM workouts w
             LEFT JOIN workoutGroups wg ON w.workoutId = wg.workoutId
             LEFT JOIN exercises e ON wg.exerciseId = e.exerciseId
             WHERE w.userId = ?
-            GROUP BY w.workoutId
+            GROUP BY w.workoutId, w.date, w.duration
             ORDER BY w.date DESC`;
         const [workouts] = await pool.query(sql, [req.session.userId]);
-        
-        res.render("workout-history", { 
-            user: req.session, 
-            workouts: workouts 
+
+        // Render workout history page
+        res.render("workout-history", {
+            user: req.session,
+            workouts: workouts
         });
-    } 
+    }
     catch (error) {
         console.error("Workout history error:", error);
         res.status(500).send("Error loading workout history");
     }
 });
 
-// route to get workout details
+// route to get workout
 app.get("/workout/:id", isAuthenticated, async (req, res) => {
     try {
-        // fo workout details
+        // query for basic workout info
         let sql = `
-            SELECT * 
+            SELECT workoutId, userId, date, duration 
             FROM workouts 
             WHERE workoutId = ? AND userId = ?`;
         const [workout] = await pool.query(sql, [
-            req.params.id, 
+            req.params.id,
             req.session.userId
         ]);
-        
+
+        // does workout exist??
         if (workout.length === 0) {
             return res.status(404).send("Workout not found");
         }
-        
-        // for exercises in this workout
+
+        // query to retrieve all exercises from this workout
         sql = `
-            SELECT wg.*, e.nameOfExercise, e.imageURL, e.muscleGroup
+            SELECT wg.groupId, wg.sets, wg.reps, wg.weight, wg.muscleGroup,
+                   e.exerciseId, e.nameOfExercise, e.imageURL, e.equipment
             FROM workoutGroups wg
             JOIN exercises e ON wg.exerciseId = e.exerciseId
             WHERE wg.workoutId = ?
             ORDER BY wg.groupId`;
         const [exerciseGroups] = await pool.query(sql, [req.params.id]);
-        
+
+        // load workout detail page
         res.render("workout-detail", {
             user: req.session,
             workout: workout[0],
             exerciseGroups: exerciseGroups
         });
-    } 
+    }
     catch (error) {
         console.error("Workout detail error:", error);
         res.status(500).send("Error loading workout details");
     }
 });
 
-// route to track progress
+// route to get user's progress over time
 app.get("/progress", isAuthenticated, async (req, res) => {
     try {
         let sql = `
-            SELECT * 
+            SELECT progressId, chestDiameter, armDiameter, shoulderDiameter, 
+                   legDiameter, hipDiameter, recordedDate 
             FROM userProgress 
             WHERE userId = ? 
             ORDER BY recordedDate DESC`;
         const [progressData] = await pool.query(sql, [req.session.userId]);
-        
-        res.render("progress", { 
-            user: req.session, 
-            progressData: progressData 
+
+        // Render progress tracking page
+        res.render("progress", {
+            user: req.session,
+            progressData: progressData
         });
     } catch (error) {
-        console.error("Progress error:", error);
+        console.error("Progress page error:", error);
         res.status(500).send("Error loading progress data");
     }
 });
 
-// route to post progress on body
+// route to post progress 
 app.post("/progress/add", isAuthenticated, async (req, res) => {
     const { chestDiameter, armDiameter, shoulderDiameter, legDiameter, hipDiameter, recordedDate } = req.body;
-    
+
     try {
         let sql = `
             INSERT INTO userProgress 
@@ -403,139 +445,153 @@ app.post("/progress/add", isAuthenticated, async (req, res) => {
             hipDiameter,
             recordedDate
         ]);
-        
+
         res.json({ success: true });
     } catch (error) {
         console.error("Add progress error:", error);
-        res.status(500).json({ success: false });
+        res.status(500).json({ success: false, error: "Failed to save progress" });
     }
 });
 
-// route to retrieve exercise library
+// route to get exerises
 app.get("/exercises", isAuthenticated, async (req, res) => {
     try {
         let sql = `
-            SELECT * 
+            SELECT exerciseId, nameOfExercise, muscleGroup, equipment, 
+                   instructions, imageURL, apiSource 
             FROM exercises 
             ORDER BY muscleGroup, nameOfExercise`;
         const [exercises] = await pool.query(sql);
-        
+
         sql = `
             SELECT DISTINCT muscleGroup 
             FROM exercises 
             ORDER BY muscleGroup`;
         const [muscleGroups] = await pool.query(sql);
-        
-        res.render("exercises", { 
-            user: req.session, 
-            exercises: exercises, 
-            muscleGroups: muscleGroups 
+
+        // exercise library page
+        res.render("exercises", {
+            user: req.session,
+            exercises: exercises,
+            muscleGroups: muscleGroups
         });
-    } 
+    }
     catch (error) {
         console.error("Exercise library error:", error);
         res.status(500).send("Error loading exercises");
     }
 });
 
-// route to retrieve profile if authenticated
+// route to get user's profile info
 app.get("/profile", isAuthenticated, async (req, res) => {
     try {
         let sql = `
-            SELECT * 
+            SELECT userId, name, email, height, weight, goals, createdAt 
             FROM userInfo 
             WHERE userId = ?`;
         const [userInfo] = await pool.query(sql, [req.session.userId]);
-        
-        res.render("profile", { 
-            user: req.session, 
-            userInfo: userInfo[0] 
+
+        res.render("profile", {
+            user: req.session,
+            userInfo: userInfo[0]
         });
-    } 
+    }
     catch (error) {
-        console.error("Profile error:", error);
+        console.error("Profile page error:", error);
         res.status(500).send("Error loading profile");
     }
 });
 
-// route to update profile
+// route to update user's profile info
 app.post("/profile/update", isAuthenticated, async (req, res) => {
     const { email, height, weight, goals } = req.body;
-    
+
     try {
+        // Update user information in database
         let sql = `
             UPDATE userInfo 
             SET email = ?, height = ?, weight = ?, goals = ? 
             WHERE userId = ?`;
         await pool.query(sql, [
-            email, 
-            height, 
-            weight, 
-            goals, 
+            email,
+            height || null,
+            weight || null,
+            goals || null,
             req.session.userId
         ]);
-        
+
+        // email changed --> update session
         req.session.userEmail = email;
-        
+
         res.json({ success: true });
-    } 
+    }
     catch (error) {
         console.error("Update profile error:", error);
-        res.status(500).json({ success: false });
+        res.status(500).json({ success: false, error: "Failed to update profile" });
     }
 });
 
-// Get motivational quote
+// route to get motivational quote from API
 app.get("/api/quote", async (req, res) => {
     const quote = await motivationalQuote();
     res.json(quote);
 });
 
-// Get workout statistics
+// route to get a log of a workout
 app.get("/api/stats", isAuthenticated, async (req, res) => {
     try {
+        // workout logs
         let sql = `
             SELECT COUNT(DISTINCT workoutId) as totalWorkouts,
-                SUM(duration) as totalMinutes,
-                DATEDIFF(MAX(date), MIN(date)) as daysActive
+                   SUM(duration) as totalMinutes,
+                   DATEDIFF(MAX(date), MIN(date)) as daysActive
             FROM workouts
             WHERE userId = ?`;
         const [stats] = await pool.query(sql, [req.session.userId]);
-        
+
+        // Return statistics as JSON
         res.json(stats[0]);
-    } 
+    }
     catch (error) {
+        console.error("Stats API error:", error);
         res.status(500).json({ error: "Failed to fetch statistics" });
     }
 });
 
-// search exercises
+// route to retrieve exercises from API
 app.get("/api/exercises/search", isAuthenticated, async (req, res) => {
     try {
+        // Extract search query from URL parameters
         const { query } = req.query;
-        
+
+        // Search exercises by name or muscle group (case-insensitive)
         let sql = `
-            SELECT * 
+            SELECT exerciseId, nameOfExercise, muscleGroup, equipment, imageURL 
             FROM exercises 
             WHERE nameOfExercise LIKE ? OR muscleGroup LIKE ?
             ORDER BY nameOfExercise
             LIMIT 20`;
         const [exercises] = await pool.query(sql, [`%${query}%`, `%${query}%`]);
-        
+
+        // Return search results as JSON
         res.json(exercises);
-    } 
+    }
     catch (error) {
+        console.error("Exercise search error:", error);
         res.status(500).json({ error: "Search failed" });
     }
 });
 
-
+// error page
 app.use((req, res) => {
     res.status(404).send("Page not found");
 });
 
-app.listen(PORT, () => {
-    console.log(`\n FitLog Fitness Tracker running on http://localhost:${PORT}`);
-    console.log(`Database: ${process.env.DB_NAME || 'fitness_tracker'}`);
-    console.log(`Environment: ${process.env.NODE_ENV || 'development'}\n`);
+app.listen(3000, ()=>{
+    console.log("Express server running")
+})
+
+//routes
+app.get('/', (req, res) => {
+   res.render('index')
 });
