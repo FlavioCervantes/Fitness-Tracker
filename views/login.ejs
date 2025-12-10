@@ -1,0 +1,47 @@
+<%- include("partials/header.ejs") %>
+	<div class="container mt-5">
+		<div class="row justify-content-center">
+			<div class="col-md-5">
+				<div class="card shadow">
+					<div class="card-header bg-primary text-white text-center">
+						<h2>Welcome Back!</h2>
+						<p class="mb-0">Login to FitLog Fitness Tracker</p>
+					</div>
+					<div class="card-body">
+						<% if (error) { %>
+							<div class="alert alert-danger" role="alert">
+								<%= error %>
+							</div>
+							<% } %>
+
+								<form method="POST" action="/login">
+									<!-- email  -->
+									<div class="mb-3">
+										<label for="email" class="form-label">Email Address</label>
+										<input type="email" class="form-control" id="email" name="email" required autofocus>
+									</div>
+
+									<!-- password -->
+									<div class="mb-3">
+										<label for="password" class="form-label">Password</label>
+										<input type="password" class="form-control" id="password" name="password" required>
+									</div>
+
+									<!-- submit Button -->
+									<div class="d-grid">
+										<button type="submit" class="btn btn-primary btn-lg">Login</button>
+									</div>
+								</form>
+
+								<hr>
+
+								<p class="text-center mb-0">
+									Don't have an account? <a href="/register">Register here</a>
+								</p>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<%- include("partials/footer.ejs") %>
