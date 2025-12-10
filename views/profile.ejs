@@ -1,0 +1,174 @@
+<%- include("partials/header") %>
+
+<div class="container my-5">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="display-6 fw-bold">
+                <i class="bi bi-person-circle text-primary me-2"></i>
+                My Profile
+            </h1>
+            <p class="text-muted">Manage your account settings and fitness information</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-pencil-square me-2"></i>Edit Profile
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    <form id="profile-update-form">
+                        <div class="mb-4">
+                            <label for="name" class="form-label fw-bold">Full Name</label>
+                            <input type="text" id="name" class="form-control" 
+                                   value="<%= userInfo.name %>" readonly>
+                            <small class="text-muted">Contact support to change your name</small>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="email" class="form-label fw-bold">Email Address</label>
+                            <input type="email" id="email" class="form-control" 
+                                   value="<%= userInfo.email %>" required>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <h5 class="mb-3">Fitness Information</h5>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="height" class="form-label fw-bold">Height (cm)</label>
+                                <input type="number" id="height" class="form-control" 
+                                       value="<%= userInfo.height || '' %>" step="0.1">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="weight" class="form-label fw-bold">Weight (kg)</label>
+                                <input type="number" id="weight" class="form-control" 
+                                       value="<%= userInfo.weight || '' %>" step="0.1">
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="goals" class="form-label fw-bold">Fitness Goals</label>
+                            <textarea id="goals" class="form-control" rows="4" 
+                                      placeholder="Describe your fitness goals..."><%= userInfo.goals || '' %></textarea>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle me-2"></i>
+                            <strong>Tip:</strong> Keep your profile updated to track your progress accurately!
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="bi bi-check-circle me-2"></i>Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Account Information -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="bi bi-info-circle me-2"></i>Account Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <strong>Account Status:</strong>
+                            <span class="badge bg-success ms-2">Active</span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <strong>Member Since:</strong>
+                            <span class="ms-2">
+                                <%= new Date(userInfo.createdAt).toLocaleDateString('en-US', { 
+                                    month: 'long', year: 'numeric' 
+                                }) %>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Summary Sidebar -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm sticky-top" style="top: 20px;">
+                <div class="card-body text-center p-4">
+                    <div class="mb-3">
+                        <i class="bi bi-person-circle text-primary" style="font-size: 5rem;"></i>
+                    </div>
+                    <h4 class="mb-1"><%= userInfo.name %></h4>
+                    <p class="text-muted mb-3"><%= userInfo.email %></p>
+                    
+                    <hr>
+                    
+                    <div class="text-start">
+                        <h6 class="mb-3">Quick Stats</h6>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Height:</span>
+                            <strong><%= userInfo.height ? userInfo.height + ' cm' : 'Not set' %></strong>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Weight:</span>
+                            <strong><%= userInfo.weight ? userInfo.weight + ' kg' : 'Not set' %></strong>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted">BMI:</span>
+                            <strong>
+                                <% if (userInfo.height && userInfo.weight) { 
+                                    const bmi = (userInfo.weight / Math.pow(userInfo.height / 100, 2)).toFixed(1);
+                                %>
+                                    <%= bmi %>
+                                <% } else { %>
+                                    N/A
+                                <% } %>
+                            </strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('profile-update-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const formData = {
+        email: document.getElementById('email').value,
+        height: document.getElementById('height').value || null,
+        weight: document.getElementById('weight').value || null,
+        goals: document.getElementById('goals').value || null
+    };
+    
+    try {
+        const response = await fetch('/profile/update', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            alert('Profile updated successfully!');
+            location.reload();
+        } else {
+            alert('Failed to update profile. Please try again.');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred. Please try again.');
+    }
+});
+</script>
+
+<%- include("partials/footer") %>

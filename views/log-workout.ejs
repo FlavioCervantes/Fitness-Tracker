@@ -1,0 +1,286 @@
+<%- include("partials/header.ejs") %>
+
+<div class="container my-5">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="display-6 fw-bold">
+                <i class="bi bi-clipboard-plus text-primary me-2"></i>
+                Log New Workout
+            </h1>
+            <p class="text-muted">Record your workout session with detailed exercise tracking</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <form id="workout-log-form">
+                        <!-- workout info-->
+                        <div class="row mb-4">
+                            <div class="col-md-6 mb-3">
+                                <label for="workout-date" class="form-label fw-bold">
+                                    <i class="bi bi-calendar-event me-1"></i>Date
+                                </label>
+                                <input type="date" id="workout-date" name="date" class="form-control" 
+                                       value="<%= new Date().toISOString().split('T')[0] %>" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="workout-duration" class="form-label fw-bold">
+                                    <i class="bi bi-clock me-1"></i>Duration (minutes)
+                                </label>
+                                <input type="number" id="workout-duration" name="duration" 
+                                       class="form-control" placeholder="60" min="1" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="workout-notes" class="form-label fw-bold">
+                                <i class="bi bi-journal-text me-1"></i>Workout Notes (Optional)
+                            </label>
+                            <textarea id="workout-notes" name="notes" class="form-control" 
+                                      rows="2" placeholder="How did you feel today?"></textarea>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <!-- list exercises -->
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h4 class="mb-0">
+                                    <i class="bi bi-list-check me-2"></i>Exercises
+                                </h4>
+                                <button type="button" id="add-exercise-btn" class="btn btn-primary">
+                                    <i class="bi bi-plus-circle me-2"></i>Add Exercise
+                                </button>
+                            </div>
+                            
+                            <div id="exercise-container">
+                                <!-- space holder to add workouts -->
+                            </div>
+
+                            <div id="no-exercises-msg" class="text-center py-5 text-muted">
+                                <i class="bi bi-inbox" style="font-size: 3rem;"></i>
+                                <p class="mt-3">No exercises added yet. Click "Add Exercise" to start.</p>
+                            </div>
+                        </div>
+
+                        <!-- Ssubmit buttons -->
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="bi bi-check-circle me-2"></i>Save Workout
+                            </button>
+                            <a href="/dashboard" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle me-2"></i>Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- library sidebar -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm sticky-top" style="top: 20px;">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-book me-2"></i>Exercise Library
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <input type="text" id="exercise-search" class="form-control mb-3" 
+                           placeholder="Search exercises...">
+                    
+                    <div id="exercise-library" style="max-height: 500px; overflow-y: auto;">
+                        <% if (exercises && exercises.length > 0) { %>
+                            <% 
+                            let currentMuscleGroup = '';
+                            exercises.forEach(function(ex) { 
+                                if (ex.muscleGroup !== currentMuscleGroup) {
+                                    currentMuscleGroup = ex.muscleGroup;
+                            %>
+                                    <h6 class="text-primary mt-3 mb-2"><%= currentMuscleGroup %></h6>
+                            <%  } %>
+                                <div class="exercise-item mb-2 p-2 border rounded" 
+                                     data-exercise-id="<%= ex.exerciseId %>"
+                                     data-exercise-name="<%= ex.nameOfExercise %>"
+                                     data-muscle-group="<%= ex.muscleGroup %>"
+                                     style="cursor: pointer;">
+                                    <small class="fw-bold"><%= ex.nameOfExercise %></small>
+                                    <% if (ex.equipment) { %>
+                                        <br><small class="text-muted"><%= ex.equipment %></small>
+                                    <% } %>
+                                </div>
+                            <% }) %>
+                        <% } else { %>
+                            <p class="text-muted small">No exercises available</p>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- exercise template -->
+<template id="exercise-row-template">
+    <div class="exercise-row card mb-3">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0 exercise-name">Exercise Name</h5>
+                <button type="button" class="btn btn-sm btn-danger remove-exercise-btn">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </div>
+            <input type="hidden" class="exercise-id" name="exercises[][exerciseId]">
+            
+            <div class="row">
+                <div class="col-md-4 mb-2">
+                    <label class="form-label small">Sets</label>
+                    <input type="number" class="form-control sets-input" 
+                           name="exercises[][sets]" placeholder="3" min="1" required>
+                </div>
+                <div class="col-md-4 mb-2">
+                    <label class="form-label small">Reps</label>
+                    <input type="number" class="form-control reps-input" 
+                           name="exercises[][reps]" placeholder="10" min="1" required>
+                </div>
+                <div class="col-md-4 mb-2">
+                    <label class="form-label small">Weight (lbs)</label>
+                    <input type="number" class="form-control weight-input" 
+                           name="exercises[][weight]" placeholder="50" min="0" step="0.5" required>
+                </div>
+            </div>
+            <div class="row mt-2">
+                <div class="col-12">
+                    <label class="form-label small">Notes (Optional)</label>
+                    <input type="text" class="form-control notes-input" 
+                           name="exercises[][notes]" placeholder="e.g., Felt strong today">
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+
+<script>
+let exerciseCount = 0;
+
+// Add exercise button handler
+document.getElementById('add-exercise-btn').addEventListener('click', function() {
+    const container = document.getElementById('exercise-container');
+    const template = document.getElementById('exercise-row-template');
+    const clone = template.content.cloneNode(true);
+    
+    container.appendChild(clone);
+    document.getElementById('no-exercises-msg').style.display = 'none';
+    
+    // Add remove button handler
+    const removeBtn = container.lastElementChild.querySelector('.remove-exercise-btn');
+    removeBtn.addEventListener('click', function() {
+        this.closest('.exercise-row').remove();
+        checkExerciseCount();
+    });
+});
+
+// exercise listener
+document.querySelectorAll('.exercise-item').forEach(item => {
+    item.addEventListener('click', function() {
+        const exerciseId = this.dataset.exerciseId;
+        const exerciseName = this.dataset.exerciseName;
+        const muscleGroup = this.dataset.muscleGroup;
+        
+        // Add exercise 
+        const container = document.getElementById('exercise-container');
+        const template = document.getElementById('exercise-row-template');
+        const clone = template.content.cloneNode(true);
+        
+        clone.querySelector('.exercise-name').textContent = exerciseName;
+        clone.querySelector('.exercise-id').value = exerciseId;
+        clone.querySelector('.muscle-group').value = muscleGroup;
+        
+        container.appendChild(clone);
+        document.getElementById('no-exercises-msg').style.display = 'none';
+        
+        // remove button 
+        const removeBtn = container.lastElementChild.querySelector('.remove-exercise-btn');
+        removeBtn.addEventListener('click', function() {
+            this.closest('.exercise-row').remove();
+            checkExerciseCount();
+        });
+        
+    });
+});
+
+// to search for exercise
+document.getElementById('exercise-search').addEventListener('input', function(e) {
+    const searchTerm = e.target.value.toLowerCase();
+    document.querySelectorAll('.exercise-item').forEach(item => {
+        const name = item.dataset.exerciseName.toLowerCase();
+        const muscle = item.dataset.muscleGroup.toLowerCase();
+        if (name.includes(searchTerm) || muscle.includes(searchTerm)) {
+            item.style.display = '';
+        } else {
+            item.style.display = 'none';
+        }
+    });
+});
+
+// check for exercises
+function checkExerciseCount() {
+    const count = document.querySelectorAll('.exercise-row').length;
+    if (count === 0) {
+        document.getElementById('no-exercises-msg').style.display = 'block';
+    }
+}
+
+// submit form
+document.getElementById('workout-log-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const exercises = [];
+    document.querySelectorAll('.exercise-row').forEach(row => {
+        exercises.push({
+            exerciseId: row.querySelector('.exercise-id').value,
+            sets: row.querySelector('.sets-input').value,
+            reps: row.querySelector('.reps-input').value,
+            weight: row.querySelector('.weight-input').value,
+            notes: row.querySelector('.notes-input').value
+        });
+    });
+    
+    if (exercises.length === 0) {
+        alert('Please add at least one exercise');
+        return;
+    }
+    
+    const formData = {
+        date: document.getElementById('workout-date').value,
+        duration: document.getElementById('workout-duration').value,
+        notes: document.getElementById('workout-notes').value,
+        exercises: exercises
+    };
+    
+    try {
+        const response = await fetch('/workout/log', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(formData)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            alert('Workout logged successfully!');
+            window.location.href = '/dashboard';
+        } else {
+            alert('Failed to log workout. Please try again.');
+        }
+    } 
+    catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred. Please try again.');
+    }
+});
+</script>
+
+<%- include("partials/footer.ejs") %>
