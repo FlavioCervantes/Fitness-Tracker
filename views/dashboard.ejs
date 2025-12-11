@@ -5,16 +5,16 @@
   <meta charset="utf-8">
   <title>Fitness Tracker Dashboard</title>
   <link rel="stylesheet" href="/css/styles.css">
-  <style>
 
    <body>
-
+  </style>
+</head>
+<body>
            <%- include("partials/header.ejs") %>
 
   <nav class="navbar navbar-expand-lg">
     <div class="container-fluid">
       <a class="navbar-brand" href="/dashboard">Dashboard</a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse" id="navbarNav">
@@ -38,7 +38,7 @@
     <section class="card mb-4" id="quote-card">
       <div class="card-body">
         <h2 class="card-title">Daily Inspiration</h2>
-        <p id="insp-quote"><%= quote.content %></p>
+        <p id="insp-quote"><%- quote.content %></p>
         <small id="quote-author" class="text-muted">— <%= quote.author %></small>
       </div>
     </section>
@@ -61,7 +61,6 @@
           <h3>Exercises (you must add at least one)</h3>
           <div id="exercise-list"></div>
 
-          <button type="button" id="add-exercise-btn" class="btn btn-secondary">Add Exercise</button>
           <button type="submit" class="btn btn-primary">Save Workout</button>
         </form>
       </div>
@@ -83,7 +82,7 @@
           <div class="mb-3">
             <label for="profile-weight" class="form-label">Weight (lbs)</label>
             <input type="number" id="profile-weight" name="weight" class="form-control" value="<%= user.weight || '' %>" required>
-          </div>
+            <input type="number" id="profile-weight" name="weight" class="form-control" value="<%= user.weight || '' %>" required min="1" max="1500">
           <button type="submit" class="btn btn-primary">Update Profile</button>
         </form>
       </div>
@@ -118,7 +117,3 @@
   <script src="/js/script.js"></script>
 </body>
 </html>
-
-
-/* ================================================================ */
-

@@ -4,6 +4,9 @@ import mysql from 'mysql2/promise';
 import bcrypt from 'bcrypt';
 import fetch from 'node-fetch';
 import session from 'express-session';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -55,12 +58,17 @@ function isAuthenticated(req, res, next) {
 async function motivationalQuote() {
     try {
         // API for quotes
-        const response = await fetch('https://api.quotable.io/random?tags=inspirational');
+        const response = await fetch('https://api.api-ninjas.com/v2/randomquotes?categories=success', {
+            headers: { 'X-Api-Key': process.env.API_NINJAS_KEY }
+        });
         const data = await response.json();
         
+        // API returns an array, get the first quote
+        const quote = data[0];
+        
         return { 
-            content: data.content, 
-            author: data.author 
+            content: quote.quote, 
+            author: quote.author 
         };
     }
     catch (error) {

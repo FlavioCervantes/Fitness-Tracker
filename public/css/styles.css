@@ -1,15 +1,27 @@
 /* Custom Styles for Famous Quotes Admin */
 
+:root {
+  --color-primary: #4CAF50;
+  --color-accent: #FF9800;
+  --color-secondary: #2196F3;
+
+  --color-bg: #F5F7FA;
+  --color-surface: #FFFFFF;
+
+  --text-primary: #212121;
+  --text-secondary: #616161;
+}
+
 body {
     font-family: 'monospace', 'Times New Roman', Times, serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: var(--color-bg);
     min-height: 100vh;
     padding: 20px;
 }
 
 .container {
-    background-color: white;
-    border-radius: 15px;
+    background-color: var(--color-surface);
+    border-radius: 4px;
     padding: 30px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
     margin-top: 20px;
@@ -17,15 +29,15 @@ body {
 }
 
 h1, h2, h3 {
-    color: #667eea;
+    color: var(--color-primary);
     font-weight: bold;
     margin-bottom: 20px;
 }
 
 .navbar {
-    background: linear-gradient(90deg, #667eea 0%, #7646a7 100%) !important;
+    background: var(--color-primary) !important;
     padding: 15px 0;
-    border-radius: 10px;
+    border-radius: 4px;
     margin-bottom: 30px;
 }
 
@@ -47,7 +59,7 @@ h1, h2, h3 {
 
  /* BTN Styles */
 .btn-primary {
-    background: linear-gradient(90deg, #667eea 0%, #713fa3 100%);
+    background: var(--color-primary);
     border: none;
     padding: 10px 25px;
     border-radius: 25px;
@@ -57,7 +69,7 @@ h1, h2, h3 {
 
 .btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
 }
 
 .btn-warning {
@@ -73,7 +85,7 @@ h1, h2, h3 {
 }
 
 .btn-success {
-    background: linear-gradient(90deg, #11998e 0%, #10bd10 100%);
+    background: var(--color-secondary);
     border: none;
     border-radius: 25px;
     padding: 10px 25px;
@@ -82,13 +94,13 @@ h1, h2, h3 {
 
 .btn-success:hover {
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(56, 239, 125, 0.4);
+    box-shadow: 0 5px 15px rgba(33, 150, 243, 0.4);
 }
 
  /* Card Enhancement */
 .card {
     border: none;
-    border-radius: 15px;
+    border-radius: 4px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
     margin-bottom: 20px;
@@ -100,19 +112,19 @@ h1, h2, h3 {
 }
 
 .card-header {
-    background: linear-gradient(90deg, #667eea 0%, #5f338a 100%);
+    background: var(--color-primary);
     color: white;
     font-weight: bold;
-    border-radius: 15px 15px 0 0 !important;
+    border-radius: 4px 4px 0 0 !important;
 }
 
 .table {
-    border-radius: 10px;
+    border-radius: 4px;
     overflow: hidden;
 }
 
 .table thead {
-    background: linear-gradient(90deg, #667eea 0%, #61328f 100%);
+    background: var(--color-primary);
     color: white;
 }
 
@@ -121,41 +133,41 @@ h1, h2, h3 {
 }
 /* Lets enhance the forms */
 .form-control, .form-select {
-    border-radius: 10px;
+    border-radius: 4px;
     border: 2px solid #e0e0e0;
     padding: 12px;
     transition: all 0.4s ;
 }
 
 .form-control:focus, .form-select:focus {
-    border-color: #667eea;
-    box-shadow: 0.2rem rgba(102, 126, 234, 0.25);
+    border-color: var(--color-primary);
+    box-shadow: 0.2rem rgba(76, 175, 80, 0.25);
 }
 
 .form-label {
     font-weight: 600;
-    color: #333;
+    color: var(--text-primary);
     margin-bottom: 8px;
 }
 
  /* Round the borders and enhance the quote cards appearance */
 .quote-card {
-    background: linear-gradient(135deg, #f5f7fa 0%, #8c3bb1 100%);
+    background: var(--color-surface);
     padding: 20px;
-    border-radius: 15px;
+    border-radius: 4px;
     margin-bottom: 20px;
-    border-left: 5px solid #667eea;
+    border-left: 5px solid var(--color-accent);
 }
 
 .quote-text {
     font-style: italic;
     font-size: 1.1rem;
-    color: #0f0f0f;
+    color: var(--text-primary);
     margin-bottom: 10px;
 }
 
 .author-name {
-    color: #e4e5e9;
+    color: var(--text-secondary);
     font-weight: bold;
 }
 
@@ -174,20 +186,20 @@ h1, h2, h3 {
 .admin-card i {
     font-size: 3rem;
     margin-bottom: 20px;
-    color: #eaeaec;
+    color: var(--color-accent);
 }
 
 footer {
     text-align: center;
     padding: 20px;
-    background-color: rgba(255, 255, 255, 0.9);
-    border-radius: 10px;
+    background-color: var(--color-surface);
+    border-radius: 4px;
     margin-top: 30px;
-    color: #666;
+    color: var(--text-secondary);
 }
 
 .alert {
-    border-radius: 10px;
+    border-radius: 4px;
     border: none;
 }
 
@@ -201,9 +213,9 @@ textarea.form-control {
 }
 
 .search-form {
-    background-color: #5765b8;
+    background-color: var(--color-secondary);
     padding: 20px;
-    border-radius: 15px;
+    border-radius: 4px;
     margin-bottom: 20px;
 }
 
@@ -245,14 +257,49 @@ textarea.form-control {
 
 ::-webkit-scrollbar-track {
     background: #f1f1f1;  /* Light gray background */
-    border-radius: 10px;
+    border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 10px;
+    background: var(--color-primary);
+    border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    background: var(--color-accent);
 }
+ 
+    /* Image hover zoom effect */
+    .exercise-card .card-img-top {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        cursor: pointer;
+        transform-origin: center center;
+        display: block;
+        margin: 0 auto;
+    }
+    
+    .exercise-card .card-img-top:hover {
+        transform: scale(4.0);
+        box-shadow: 0 12px 24px rgba(0,0,0,0.3);
+        z-index: 10;
+        position: center;
+    }
+    
+    /* Smooth card hover effect */
+    .exercise-card .card {
+        transition: transform 0.2s ease;
+        overflow: visible;
+    }
+    
+    .exercise-card .card:hover {
+        transform: translateY(-5px);
+    }
+    
+    /* Center card content */
+    .exercise-card .card-body {
+        text-align: center;
+    }
+    
+    .exercise-card .card-title {
+        text-align: center;
+    }

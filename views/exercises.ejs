@@ -1,4 +1,35 @@
-<%- include("partials/header") %>
+
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Fitness Tracker Dashboard</title>
+  <link rel="stylesheet" href="/css/styles.css">
+
+</head>
+<body>
+           <%- include("partials/header.ejs") %>
+
+  <nav class="navbar navbar-expand-lg">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="/dashboard">Dashboard</a>
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="/exercises">Exercises</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/progress">Progress</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/logout">Logout</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav> 
 
 <div class="container my-5">
     <div class="row mb-4">
@@ -7,7 +38,7 @@
                 <i class="bi bi-book text-primary me-2"></i>
                 Exercise Library
             </h1>
-            <p class="text-muted">Browse our collection of exercises with instructions and techniques</p>
+            <p class="text-muted">Browse our collection of exercises with instructions and techniques. Refer to the images for other similar exercises.</p>
         </div>
     </div>
 
@@ -37,14 +68,32 @@
                      data-muscle-group="<%= ex.muscleGroup %>"
                      data-exercise-name="<%= ex.nameOfExercise.toLowerCase() %>">
                     <div class="card h-100 border-0 shadow-sm">
+                        <% 
+                        // Map muscle group names to image filenames
+                        const muscleGroupMap = {
+                            'Chest': 'chest',
+                            'Back': 'back',
+                            'Legs': 'legs',
+                            'Shoulders': 'shoulders',
+                            'Biceps': 'biceps',
+                            'Triceps': 'triceps',
+                            'Core': 'core',
+                            'Cardio': 'cardio',
+                            'Arms': 'biceps' // fallback to biceps for generic arms
+                        };
+                        const imageFile = muscleGroupMap[ex.muscleGroup] || 'core';
+                        %>
+                        
                         <% if (ex.imageURL && ex.imageURL !== 'https://example.com/bench-press.jpg') { %>
                             <img src="<%= ex.imageURL %>" class="card-img-top" 
-                                 alt="<%= ex.nameOfExercise %>" style="height: 200px; object-fit: cover;">
+                                 alt="<%= ex.nameOfExercise %>" style="height: 200px; object-fit: cover;"
+                                 onerror="this.src='/img/muscle-groups/<%= imageFile %>.jpg';">
                         <% } else { %>
-                            <div class="card-img-top bg-light d-flex align-items-center justify-content-center" 
-                                 style="height: 200px;">
-                                <i class="bi bi-image text-muted" style="font-size: 3rem;"></i>
-                            </div>
+                            <!-- Use muscle group image -->
+                            <img src="/img/muscle-groups/<%= imageFile %>.jpg" 
+                                 class="card-img-top" 
+                                 alt="<%= ex.muscleGroup %>" 
+                                 style="height: 200px; object-fit: cover;">
                         <% } %>
                         
                         <div class="card-body">
@@ -75,7 +124,7 @@
                             
                             <% if (ex.apiSource) { %>
                                 <small class="text-muted">
-                                    <i class="bi bi-info-circle me-1"></i>Source: <%= ex.apiSource %>
+                                    <i class="bi bi-info-circle me-1"></i>
                                 </small>
                             <% } %>
                         </div>
