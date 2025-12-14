@@ -268,6 +268,15 @@ textarea.form-control {
 ::-webkit-scrollbar-thumb:hover {
     background: var(--color-accent);
 }
+
+/* to remove underlined hyperlink to 'EDIT' */
+.btn,
+a.btn,
+a.btn:hover,
+a.btn:focus,
+a.btn:active {
+    text-decoration: none !important;
+}
  
     /* Image hover zoom effect */
     .exercise-card .card-img-top {

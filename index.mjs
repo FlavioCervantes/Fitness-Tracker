@@ -50,7 +50,7 @@ async function motivationalQuote() {
         console.log("Fetching quote from Quotable API...");
         
         // Quotable API - FREE, no key needed!
-        const response = await fetch('https://api.quotable.io/random?tags=inspirational|motivational');
+        const response = await fetch('https://zenquotes.io/api/today');
         
         if (!response.ok) {
             throw new Error(`API returned ${response.status}`);
@@ -58,11 +58,14 @@ async function motivationalQuote() {
         
         const data = await response.json();
         
-        console.log("✓ Successfully fetched quote from API");
+        console.log("Successfully fetched quote from API");
         
+        // variable created due to quotes being in array form
+        const quote = data[0]
+
         return { 
-            content: data.content, 
-            author: data.author 
+            content: quote.q, 
+            author: quote.a 
         };
     }
     catch (error) {
