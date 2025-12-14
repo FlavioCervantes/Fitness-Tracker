@@ -47,29 +47,41 @@ function isAuthenticated(req, res, next) {
 
 async function motivationalQuote() {
     try {
-        // API for quotes
-        const response = await fetch('https://api.api-ninjas.com/v2/randomquotes?categories=success', {
-            headers: { 'X-Api-Key': process.env.API_NINJAS_KEY }
-        });
+        console.log("Fetching quote from Quotable API...");
+        
+        // Quotable API - FREE, no key needed!
+        const response = await fetch('https://api.quotable.io/random?tags=inspirational|motivational');
+        
+        if (!response.ok) {
+            throw new Error(`API returned ${response.status}`);
+        }
+        
         const data = await response.json();
         
-        // API returns an array, get the first quote
-        const quote = data[0];
+        console.log("✓ Successfully fetched quote from API");
         
         return { 
-            content: quote.quote, 
-            author: quote.author 
+            content: data.content, 
+            author: data.author 
         };
     }
     catch (error) {
-        // default quote if unable to get from API
-        console.error("Quote API error:", error);
-        return {
-            content: "The only bad workout is the one that didn't happen.",
-            author: "Unknown"
-        };
+        console.error("Quote API error:", error.message);
+        console.log("Using fallback quote");
+        
+        // Fallback quotes array if API fails
+        const fallbackQuotes = [
+            { content: "The only bad workout is the one that didn't happen.", author: "Unknown" },
+            { content: "Success is not final, failure is not fatal.", author: "Winston Churchill" },
+            { content: "The body achieves what the mind believes.", author: "Unknown" },
+            { content: "Push yourself because no one else is going to do it for you.", author: "Unknown" },
+            { content: "Great things never come from comfort zones.", author: "Unknown" }
+        ];
+        
+        return fallbackQuotes[Math.floor(Math.random() * fallbackQuotes.length)];
     }
 }
+
 
 // route to test connection to DB
 app.get("/dbTest", async (req, res) => {
