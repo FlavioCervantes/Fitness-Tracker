@@ -14,6 +14,9 @@ const PORT = process.env.PORT || 3000;
 app.set("view engine", "ejs");
 app.use(express.static("public"));
 app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+
+// removed duplicate session middleware since we had it twice
 app.use(session({
     secret: process.env.SESSION_SECRET || 'fitness-tracker-secret-key-change-in-production',
     resave: false,
@@ -21,19 +24,6 @@ app.use(session({
     cookie: { secure: false, maxAge: 24 * 60 * 60 * 1000 } // 24 hours
 }));
 
-app.use(express.json());
-
-// Configure session middleware for user authentication
-app.use(session({
-    secret: process.env.SESSION_SECRET || 'fitness-tracker-secret-key-change-in-production',
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-        secure: false, 
-        httpOnly: true,
-        maxAge: 1000 * 60 * 60 * 24
-    }
-}));
 
 // connect to DB
 const pool = mysql.createPool({
@@ -590,6 +580,133 @@ app.get("/api/exercises/search", isAuthenticated, async (req, res) => {
     }
 });
 
+// ADDING THESE ROUTES TO ALLOW FOR EDITING/ADDING/DELETING EXERCISES
+app.get("/workout/edit/:workoutId", isAuthenticated, async (req, res) => {
+    try {
+        const workoutId = req.params.workoutId;
+        
+        // retrieve workout info
+        let sql = `
+            SELECT workoutId, userId, date, duration 
+            FROM workouts 
+            WHERE workoutId = ? AND userId = ?`;
+        const [workoutResult] = await pool.query(sql, [workoutId, req.session.userId]);
+
+        // verify workout exists and belongs to user
+        if (workoutResult.length === 0) {
+            return res.status(404).send("Workout not found or access denied");
+        }
+
+        const workout = workoutResult[0];
+
+        // retrieve all exercises for this workout
+        sql = `
+            SELECT wg.groupId, wg.muscleGroup, wg.sets, wg.reps, wg.weight,
+                   e.exerciseId, e.nameOfExercise, e.equipment
+            FROM workoutGroups wg
+            JOIN exercises e ON wg.exerciseId = e.exerciseId
+            WHERE wg.workoutId = ?
+            ORDER BY wg.groupId`;
+        const [exerciseGroups] = await pool.query(sql, [workoutId]);
+
+        // Get all available exercises for the exercise library
+        sql = `
+            SELECT exerciseId, nameOfExercise, muscleGroup, equipment 
+            FROM exercises 
+            ORDER BY muscleGroup, nameOfExercise`;
+        const [exercises] = await pool.query(sql);
+
+        // render edit workout page
+        res.render("editWorkout", {
+            user: req.session,
+            workout: workout,
+            exerciseGroups: exerciseGroups,
+            exercises: exercises
+        });
+    }
+    catch (error) {
+        console.error("Edit workout page error:", error);
+        res.status(500).send("Error loading workout for editing");
+    }
+});
+
+// route to POST updated workout
+app.post("/workout/edit/:workoutId", isAuthenticated, async (req, res) => {
+    try {
+        const workoutId = req.params.workoutId;
+        const { date, duration, exercises } = req.body;
+
+        // verify workout belongs to this user
+        let sql = `SELECT userId FROM workouts WHERE workoutId = ?`;
+        const [workoutCheck] = await pool.query(sql, [workoutId]);
+        
+        if (workoutCheck.length === 0 || workoutCheck[0].userId !== req.session.userId) {
+            return res.status(403).json({ success: false, error: "Access denied" });
+        }
+
+        // update the date/duration on the workout record
+        sql = `
+            UPDATE workouts 
+            SET date = ?, duration = ?
+            WHERE workoutId = ? AND userId = ?`;
+        await pool.query(sql, [date, duration, workoutId, req.session.userId]);
+
+        // remove all existing exercise groups for this workout
+        sql = `DELETE FROM workoutGroups WHERE workoutId = ?`;
+        await pool.query(sql, [workoutId]);
+
+        // add the updated exercise groups
+        if (exercises && Array.isArray(exercises)) {
+            sql = `
+                INSERT INTO workoutGroups 
+                (workoutId, muscleGroup, exerciseId, sets, reps, weight) 
+                VALUES (?, ?, ?, ?, ?, ?)`;
+
+            for (const ex of exercises) {
+                await pool.query(sql, [
+                    workoutId,
+                    ex.muscleGroup,
+                    ex.exerciseId,
+                    ex.sets,
+                    ex.reps,
+                    ex.weight
+                ]);
+            }
+        }
+
+        res.json({ success: true, workoutId: workoutId });
+    }
+    catch (error) {
+        console.error("Update workout error:", error);
+        res.status(500).json({ success: false, error: "Failed to update workout" });
+    }
+});
+
+// route to delete a workout
+app.post("/workout/delete/:workoutId", isAuthenticated, async (req, res) => {
+    try {
+        const workoutId = req.params.workoutId;
+
+        // chekc workout belongs to this user before deleting
+        let sql = `SELECT userId FROM workouts WHERE workoutId = ?`;
+        const [workoutCheck] = await pool.query(sql, [workoutId]);
+        
+        if (workoutCheck.length === 0 || workoutCheck[0].userId !== req.session.userId) {
+            return res.status(403).json({ success: false, error: "Access denied" });
+        }
+
+        // delete the workout with help of cascade
+        sql = `DELETE FROM workouts WHERE workoutId = ? AND userId = ?`;
+        await pool.query(sql, [workoutId, req.session.userId]);
+
+        res.json({ success: true });
+    }
+    catch (error) {
+        console.error("Delete workout error:", error);
+        res.status(500).json({ success: false, error: "Failed to delete workout" });
+    }
+});
+
 // error page
 app.use((req, res) => {
     res.status(404).send("Page not found");
@@ -599,7 +716,3 @@ app.listen(3000, ()=>{
     console.log("Express server running")
 })
 
-//routes
-app.get('/', (req, res) => {
-   res.render('index')
-});

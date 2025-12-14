@@ -1,0 +1,339 @@
+	<%- include("partials/header.ejs") %>
+
+	<div class="container my-5">
+		<div class="row mb-4">
+			<div class="col">
+				<h1 class="display-6 fw-bold">
+					<i class="bi bi-pencil-square text-primary me-2"></i>
+					Edit Workout
+				</h1>
+				<p class="text-muted">Update your workout session details</p>
+			</div>
+		</div>
+
+		<div class="row">
+			<div class="col-lg-8">
+				<div class="card border-0 shadow-sm">
+					<div class="card-body p-4">
+						<form id="workout-edit-form" data-workout-id="<%= workout.workoutId %>">
+							
+							<!-- workout info [date/duration] -->
+							<div class="row mb-4">
+								<div class="col-md-6 mb-3">
+									<label for="workout-date" class="form-label fw-bold">
+										<i class="bi bi-calendar-event me-1"></i>Date
+									</label>
+									<input type="date" id="workout-date" name="date" class="form-control"
+										value="<%= new Date(workout.date).toISOString().split('T')[0] %>" required>
+								</div>
+
+								<div class="col-md-6 mb-3">
+									<label for="workout-duration" class="form-label fw-bold">
+										<i class="bi bi-clock me-1"></i>Duration (minutes)
+									</label>
+									<input type="number" id="workout-duration" name="duration" class="form-control"
+										value="<%= workout.duration %>" min="1" required>
+								</div>
+							</div>
+
+							<hr class="my-4">
+
+							<!-- exercise list [w/ option to add new exercise] -->
+							<div class="mb-4">
+								<div class="d-flex justify-content-between align-items-center mb-3">
+									<h4 class="mb-0">
+										<i class="bi bi-list-check me-2"></i>Exercises
+									</h4>
+									<button type="button" id="add-exercise-btn" class="btn btn-primary">
+										<i class="bi bi-plus-circle me-2"></i>Add Exercise
+									</button>
+								</div>
+
+								<div id="exercise-container">
+									<!-- populate existing exercises for users to see -->
+									<% if (exerciseGroups && exerciseGroups.length> 0) { %>
+										<% exerciseGroups.forEach(function(group) { %>
+											<div class="exercise-row card mb-3" data-group-id="<%= group.groupId %>">
+												<div class="card-body">
+													<div class="d-flex justify-content-between align-items-center mb-3">
+														<h5 class="mb-0 exercise-name">
+															<%= group.nameOfExercise %>
+														</h5>
+														<button type="button" class="btn btn-sm btn-danger remove-exercise-btn">
+															<i class="bi bi-trash"></i>
+														</button>
+													</div>
+													<input type="hidden" class="exercise-id" name="exercises[][exerciseId]"
+														value="<%= group.exerciseId %>">
+													<input type="hidden" class="group-id" name="exercises[][groupId]"
+														value="<%= group.groupId %>">
+													<input type="hidden" class="muscle-group" name="exercises[][muscleGroup]"
+														value="<%= group.muscleGroup %>">
+
+													<div class="row">
+														<div class="col-md-4 mb-2">
+															<label class="form-label small">Sets</label>
+															<input type="number" class="form-control sets-input" name="exercises[][sets]"
+																value="<%= group.sets %>" min="1" required>
+														</div>
+														<div class="col-md-4 mb-2">
+															<label class="form-label small">Reps</label>
+															<input type="number" class="form-control reps-input" name="exercises[][reps]"
+																value="<%= group.reps %>" min="1" required>
+														</div>
+														<div class="col-md-4 mb-2">
+															<label class="form-label small">Weight (lbs)</label>
+															<input type="number" class="form-control weight-input" name="exercises[][weight]"
+																value="<%= group.weight %>" min="0" step="0.5" required>
+														</div>
+													</div>
+												</div>
+											</div>
+										<% }) %>
+									<% } %>
+								</div>
+
+								<!-- prompt user to finalize adding exercise -->
+								<div id="no-exercises-msg" class="text-center py-5 text-muted" style="display: none;">
+									<i class="bi bi-inbox" style="font-size: 3rem;"></i>
+									<p class="mt-3">No exercises added yet. Click "Add Exercise" to start.</p>
+								</div>
+							</div>
+
+							<!-- submit button -->
+							<div class="d-grid gap-2">
+								<button type="submit" class="btn btn-success btn-lg">
+									<i class="bi bi-check-circle me-2"></i>Update Workout
+								</button>
+								<a href="/dashboard" class="btn btn-outline-secondary">
+									<i class="bi bi-x-circle me-2"></i>Cancel
+								</a>
+							</div>
+						</form>
+					</div>
+				</div>
+			</div>
+
+			<!-- exercise library on side -->
+			<div class="col-lg-4">
+				<div class="card border-0 shadow-sm sticky-top" style="top: 20px;">
+					<div class="card-header bg-primary text-white">
+						<h5 class="mb-0">
+							<i class="bi bi-book me-2"></i>Exercise Library
+						</h5>
+					</div>
+					<div class="card-body">
+						<input type="text" id="exercise-search" class="form-control mb-3" placeholder="Search exercises...">
+
+						<div id="exercise-library" style="max-height: 500px; overflow-y: auto;">
+							<% if (exercises && exercises.length> 0) { %>
+								<% let currentMuscleGroup='' ; exercises.forEach(function(ex) { if (ex.muscleGroup
+									!==currentMuscleGroup) { currentMuscleGroup=ex.muscleGroup; %>
+									<h6 class="text-primary mt-3 mb-2">
+										<%= currentMuscleGroup %>
+									</h6>
+									<% } %>
+
+										<!-- check if exercise exists -->
+										<div class="exercise-item mb-2 p-2 border rounded" data-exercise-id="<%= ex.exerciseId %>"
+											data-exercise-name="<%= ex.nameOfExercise %>" data-muscle-group="<%= ex.muscleGroup %>"
+											style="cursor: pointer;">
+											<small class="fw-bold">
+												<%= ex.nameOfExercise %>
+											</small>
+											<% if (ex.equipment) { %>
+												<br><small class="text-muted">
+													<%= ex.equipment %>
+												</small>
+												<% } %>
+										</div>
+										<% }) %>
+											<% } 
+											else { %>
+												<p class="text-muted small">No exercises available</p>
+												<% } %>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- prefilled exercise template -->
+	<template id="exercise-row-template">
+		<div class="exercise-row card mb-3">
+			<div class="card-body">
+				<div class="d-flex justify-content-between align-items-center mb-3">
+					<h5 class="mb-0 exercise-name">Exercise Name</h5>
+					<button type="button" class="btn btn-sm btn-danger remove-exercise-btn">
+						<i class="bi bi-trash"></i>
+					</button>
+				</div>
+				<input type="hidden" class="exercise-id" name="exercises[][exerciseId]">
+				<input type="hidden" class="muscle-group" name="exercises[][muscleGroup]">
+
+				<div class="row">
+					<div class="col-md-4 mb-2">
+						<label class="form-label small">Sets</label>
+						<input type="number" class="form-control sets-input" name="exercises[][sets]" placeholder="3" min="1"
+							required>
+					</div>
+					<div class="col-md-4 mb-2">
+						<label class="form-label small">Reps</label>
+						<input type="number" class="form-control reps-input" name="exercises[][reps]" placeholder="10" min="1"
+							required>
+					</div>
+					<div class="col-md-4 mb-2">
+						<label class="form-label small">Weight (lbs)</label>
+						<input type="number" class="form-control weight-input" name="exercises[][weight]" placeholder="50" min="0"
+							step="0.5" required>
+					</div>
+				</div>
+			</div>
+		</div>
+	</template>
+
+	<script>
+		// Check if there are exercises on load
+		checkExerciseCount();
+
+		// exercise button handler
+		document.getElementById('add-exercise-btn').addEventListener('click', function () {
+			const container = document.getElementById('exercise-container');
+			const template = document.getElementById('exercise-row-template');
+			const clone = template.content.cloneNode(true);
+
+			container.appendChild(clone);
+			document.getElementById('no-exercises-msg').style.display = 'none';
+
+			// remove button handler for 'add exercise'
+			const removeBtn = container.lastElementChild.querySelector('.remove-exercise-btn');
+			removeBtn.addEventListener('click', function () {
+				this.closest('.exercise-row').remove();
+				checkExerciseCount();
+			});
+		});
+
+		// remove button handlers to existing exercises
+		document.querySelectorAll('.remove-exercise-btn').forEach(btn => {
+			btn.addEventListener('click', function () {
+				if (confirm('Are you sure you want to remove this exercise?')) {
+					this.closest('.exercise-row').remove();
+					checkExerciseCount();
+				}
+			});
+		});
+
+		// Exercise click listener
+		document.querySelectorAll('.exercise-item').forEach(item => {
+			item.addEventListener('click', function () {
+				const exerciseId = this.dataset.exerciseId;
+				const exerciseName = this.dataset.exerciseName;
+				const muscleGroup = this.dataset.muscleGroup;
+
+				// add exercise to form
+				const container = document.getElementById('exercise-container');
+				const template = document.getElementById('exercise-row-template');
+				const clone = template.content.cloneNode(true);
+
+				clone.querySelector('.exercise-name').textContent = exerciseName;
+				clone.querySelector('.exercise-id').value = exerciseId;
+				clone.querySelector('.muscle-group').value = muscleGroup;
+
+				container.appendChild(clone);
+				document.getElementById('no-exercises-msg').style.display = 'none';
+
+				// remove button handler for exercise library
+				const removeBtn = container.lastElementChild.querySelector('.remove-exercise-btn');
+				removeBtn.addEventListener('click', function () {
+					this.closest('.exercise-row').remove();
+					checkExerciseCount();
+				});
+			});
+		});
+
+		// to allow searching for exercises
+		document.getElementById('exercise-search').addEventListener('input', function (e) {
+			const searchTerm = e.target.value.toLowerCase();
+
+			// convert search all to lowercase to prevent case sensitivity issues
+			document.querySelectorAll('.exercise-item').forEach(item => {
+				const name = item.dataset.exerciseName.toLowerCase();
+				const muscle = item.dataset.muscleGroup.toLowerCase();
+				
+				if (name.includes(searchTerm) || muscle.includes(searchTerm)) {
+					item.style.display = '';
+				} 
+				else {
+					item.style.display = 'none';
+				}
+			});
+		});
+
+		// Check exercise count
+		function checkExerciseCount() {
+			const count = document.querySelectorAll('.exercise-row').length;
+			if (count === 0) {
+				document.getElementById('no-exercises-msg').style.display = 'block';
+			} 
+			else {
+				document.getElementById('no-exercises-msg').style.display = 'none';
+			}
+		}
+
+		// to submit form
+		document.getElementById('workout-edit-form').addEventListener('submit', async function (e) {
+			e.preventDefault();
+
+			const workoutId = this.dataset.workoutId;
+			const exercises = [];
+
+			document.querySelectorAll('.exercise-row').forEach(row => {
+				const groupId = row.querySelector('.group-id') ? row.querySelector('.group-id').value : null;
+				exercises.push({
+					groupId: groupId,
+					exerciseId: row.querySelector('.exercise-id').value,
+					muscleGroup: row.querySelector('.muscle-group').value,
+					sets: row.querySelector('.sets-input').value,
+					reps: row.querySelector('.reps-input').value,
+					weight: row.querySelector('.weight-input').value
+				});
+			});
+
+			if (exercises.length === 0) {
+				alert('Please add at least one exercise');
+				return;
+			}
+
+			const formData = {
+				date: document.getElementById('workout-date').value,
+				duration: document.getElementById('workout-duration').value,
+				exercises: exercises
+			};
+
+			// attempt to update with new workout with failure/success message
+			try {
+				const response = await fetch(`/workout/edit/${workoutId}`, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify(formData)
+				});
+
+				const result = await response.json();
+
+				if (result.success) {
+					alert('Workout updated successfully!');
+					window.location.href = '/dashboard';
+				} 
+				else {
+					alert('Failed to update workout. Please try again.');
+				}
+			}
+			 catch (error) {
+				console.error('Error:', error);
+				alert('An error occurred. Please try again.');
+			}
+		});
+	</script>
+
+	<%- include("partials/footer.ejs") %>
