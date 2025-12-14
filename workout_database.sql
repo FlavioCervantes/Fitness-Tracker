@@ -1,3 +1,5 @@
+GRANT INSERT, UPDATE ON workout_database.* TO 'app_user'@'localhost';
+
 CREATE TABLE userInfo (
     userId INT PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(100) NOT NULL,
@@ -116,3 +118,5 @@ INSERT INTO workoutGroups (workoutId, exerciseId, sets, reps, weight) VALUES
 SELECT 'UserInfo Count:' as Info, COUNT(*) as Count FROM userInfo;
 SELECT 'Exercises Count:' as Info, COUNT(*) as Count FROM exercises;
 SELECT 'Workouts Count:' as Info, COUNT(*) as Count FROM workouts;
+
+FLUSH PRIVILEGES;
