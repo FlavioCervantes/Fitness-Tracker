@@ -288,13 +288,13 @@ DATA FLOW & DEPENDENCIES
 Session Flow:
 -------------
 User Registers/Logs In
-    ↓
+    →
 Express-Session creates session with secret key
-    ↓
+    →
 Session data stored: { userId, userName, userEmail }
-    ↓
+    →
 isAuthenticated() middleware checks req.session.userId
-    ↓
+    →
 If authenticated: proceed to route
 If not: redirect to /login
 
@@ -302,71 +302,71 @@ If not: redirect to /login
 Workout Logging Flow:
 ---------------------
 Dashboard → User fills Log Workout form
-    ↓
+    →
 User clicks "Save Workout"
-    ↓
+    →
 script.js captures form data (date, duration, exercises)
-    ↓
+   →
 POST request to /workout/log with JSON body
-    ↓
+   →
 index.mjs receives request
-    ↓
+    →
 INSERT into workouts table (userId, date, duration)
-    ↓
+    →
 For each exercise: INSERT into workoutGroups table
-    ↓
+    →
 Return JSON: { success: true, workoutId: X }
-    ↓
+    →
 script.js receives response
-    ↓
+   →
 Alert "Workout logged successfully!"
-    ↓
+   →
 window.location.href = "/dashboard"
-    ↓
+   →
 Dashboard loads with updated workout list
 
 
 Quote API Flow:
 ---------------
 Page loads (homepage or dashboard)
-    ↓
+    →
 Server calls motivationalQuote() function
-    ↓
+    →
 Fetch from https://zenquotes.io/api/random
-    ↓
+    →
 API returns JSON array: [{ q: "quote text", a: "author name" }]
-    ↓
+    →
 Extract first element: data[0]
-    ↓
+    →
 Return object: { content: quote.q, author: quote.a }
-    ↓
+    →
 Pass to EJS template
-    ↓
+   →
 Template renders: <%= quote.content %> and <%= quote.author %>
-    ↓
+    →
 (Optional) Client can also fetch via /api/quote endpoint
 
 
 Profile Update Flow:
 --------------------
 Profile page loads with existing user data
-    ↓
+    →
 User modifies email, height, weight, or goals
-    ↓
+    →
 Clicks "Save Changes"
-    ↓
+    →
 script.js preventDefault()
-    ↓
+    →
 Collects form data
-    ↓
+    →
 POST to /profile/update with JSON body
-    ↓
+   →
 index.mjs UPDATE userInfo SET email=?, height=?, weight=?, goals=?
-    ↓
+    →
 Update session email if changed
-    ↓
+    →
 Return JSON: { success: true }
-    ↓
+  →
 Alert "Profile updated!"
 
 
@@ -459,50 +459,6 @@ Animations:
 - Card Hover: translateY(-5px) in 0.2s
 - Exercise Image Hover: scale(4.0) in 0.3s
 - Navbar Link Hover: scale(1.05) + text-shadow
-
-REQUIREMENTS CHECKLIST
-======================
-
-✓ 1. User interaction with at least three form elements
-     - Registration form: 7 elements (name, email, password, confirmPassword, 
-       height, weight, goals)
-     - Login form: 2 elements
-     - Workout form: 2+ elements (date, duration, dynamic exercises)
-     - Profile form: 4 elements (email, height, weight, goals)
-     - Progress form: 7 elements (6 measurements + date)
-
-✓ 2. Project uses Web storage or Sessions
-     - express-session middleware configured
-     - Session data: userId, userName, userEmail
-     - isAuthenticated middleware protects routes
-     - Session secret stored in .env
-
-✓ 3. Users are able to update existing records (3+ fields)
-     - Profile update: email, height, weight, goals (4 fields)
-     - Workout edit: date, duration, exercises
-
-✓ 4. Users can add records to the database
-     - User registration → userInfo table
-     - Workout logging → workouts & workoutGroups tables
-     - Progress tracking → userProgress table
-
-✓ 5. Project must have at least 50 lines of client-side JavaScript
-     - script.js: 121 lines total
-     - Functions: init, loadMotivationQuote, handleWorkoutForm, 
-       handleProfileForm, handleProgressForm
-
-✓ 6. Project includes at least two local or external Web APIs
-     - External API: ZenQuotes (https://zenquotes.io/api/random)
-     - Local API 1: /api/quote
-     - Local API 2: /api/stats
-     - Local API 3: /api/exercises/search
-
-✓ 7. Professional design, free of typos
-     - Bootstrap 5 framework
-     - Custom CSS with design system
-     - Consistent spacing and styling
-     - All typos fixed (quote-author ID, "check" spelling, em dash character)
-
 
 DEPLOYMENT NOTES
 ================
