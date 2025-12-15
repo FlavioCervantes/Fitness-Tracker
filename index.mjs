@@ -1,4 +1,3 @@
-
 import express from 'express';
 import mysql from 'mysql2/promise';
 import bcrypt from 'bcrypt';
@@ -286,15 +285,64 @@ app.get("/dashboard", isAuthenticated, async (req, res) => {
 });
 
 // route to display workout log
+app.get("/exercises", isAuthenticated, async (req, res) => {
+    try {
+        // Fetch from ExerciseDB JSON endpoint
+        const response = await fetch('https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/dist/exercises.json');
+        
+        if (!response.ok) {
+            throw new Error(`API returned ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        // Transform data (limit to 100 for performance)
+        const exercises = data.slice(0, 100).map(ex => ({
+            exerciseId: ex.id,
+            nameOfExercise: ex.name,
+            muscleGroup: ex.primaryMuscles?.[0] || ex.target || 'General',
+            equipment: ex.equipment || 'Bodyweight',
+            instructions: ex.instructions?.join(' ') || 'No instructions',
+            imageURL: ex.images?.[0] || ex.gifUrl || null,
+            apiSource: 'ExerciseDB'
+        }));
+
+        // Get unique muscle groups
+        const muscleGroups = [...new Set(exercises.map(e => e.muscleGroup))].map(group => ({
+            muscleGroup: group
+        }));
+
+        res.render("exercises", {
+            user: req.session,
+            exercises: exercises,
+            muscleGroups: muscleGroups
+        });
+    }
+    catch (error) {
+        console.error("Exercise library error:", error);
+        res.status(500).send("Error loading exercises");
+    }
+});
+
+// route to post a workout (to be referred to later)
 app.get("/workout/log", isAuthenticated, async (req, res) => {
     try {
-        let sql = `
-            SELECT exerciseId, nameOfExercise, muscleGroup, equipment, imageURL 
-            FROM exercises 
-            ORDER BY muscleGroup, nameOfExercise`;
-        const [exercises] = await pool.query(sql);
+        const response = await fetch('https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/dist/exercises.json');
+        
+        if (!response.ok) {
+            throw new Error(`API returned ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        const exercises = data.slice(0, 100).map(ex => ({
+            exerciseId: ex.id,
+            nameOfExercise: ex.name,
+            muscleGroup: ex.primaryMuscles?.[0] || ex.target || 'General',
+            equipment: ex.equipment || 'Bodyweight',
+            imageURL: ex.images?.[0] || ex.gifUrl || null
+        }));
 
-        // load the workout log
         res.render("log-workout", {
             user: req.session,
             exercises: exercises
@@ -306,7 +354,6 @@ app.get("/workout/log", isAuthenticated, async (req, res) => {
     }
 });
 
-// route to post a workout (to be referred to later)
 app.post("/workout/log", isAuthenticated, async (req, res) => {
     const { date, duration, exercises } = req.body;
 
@@ -334,7 +381,7 @@ app.post("/workout/log", isAuthenticated, async (req, res) => {
                 await pool.query(sql, [
                     workoutId,
                     ex.muscleGroup,
-                    ex.exerciseId,
+                    1, // Placeholder ID
                     ex.sets,
                     ex.reps,
                     ex.weight
@@ -349,6 +396,48 @@ app.post("/workout/log", isAuthenticated, async (req, res) => {
         res.status(500).json({ success: false, error: "Failed to save workout" });
     }
 });
+// app.post("/workout/log", isAuthenticated, async (req, res) => {
+//     const { date, duration, exercises } = req.body;
+
+//     try {
+//         let sql = `
+//             INSERT INTO workouts (userId, date, duration) 
+//             VALUES (?, ?, ?)`;
+//         const [result] = await pool.query(sql, [
+//             req.session.userId,
+//             date,
+//             duration
+//         ]);
+
+//         const workoutId = result.insertId;
+
+//         // if exercise selected, choose a group
+//         if (exercises && Array.isArray(exercises)) {
+//             sql = `
+//                 INSERT INTO workoutGroups 
+//                 (workoutId, muscleGroup, exerciseId, sets, reps, weight) 
+//                 VALUES (?, ?, ?, ?, ?, ?)`;
+
+//             // Loop through each exercise and insert into workoutGroups
+//             for (const ex of exercises) {
+//                 await pool.query(sql, [
+//                     workoutId,
+//                     ex.muscleGroup,
+//                     ex.exerciseId,
+//                     ex.sets,
+//                     ex.reps,
+//                     ex.weight
+//                 ]);
+//             }
+//         }
+
+//         res.json({ success: true, workoutId: workoutId });
+//     }
+//     catch (error) {
+//         console.error("Log workout submission error:", error);
+//         res.status(500).json({ success: false, error: "Failed to save workout" });
+//     }
+// });
 
 // route to get user's workout history
 app.get("/workout/history", isAuthenticated, async (req, res) => {
@@ -466,35 +555,6 @@ app.post("/progress/add", isAuthenticated, async (req, res) => {
     }
 });
 
-// route to get exerises
-app.get("/exercises", isAuthenticated, async (req, res) => {
-    try {
-        let sql = `
-            SELECT exerciseId, nameOfExercise, muscleGroup, equipment, 
-                   instructions, imageURL, apiSource 
-            FROM exercises 
-            ORDER BY muscleGroup, nameOfExercise`;
-        const [exercises] = await pool.query(sql);
-
-        sql = `
-            SELECT DISTINCT muscleGroup 
-            FROM exercises 
-            ORDER BY muscleGroup`;
-        const [muscleGroups] = await pool.query(sql);
-
-        // exercise library page
-        res.render("exercises", {
-            user: req.session,
-            exercises: exercises,
-            muscleGroups: muscleGroups
-        });
-    }
-    catch (error) {
-        console.error("Exercise library error:", error);
-        res.status(500).send("Error loading exercises");
-    }
-});
-
 // route to get user's profile info
 app.get("/profile", isAuthenticated, async (req, res) => {
     try {
@@ -574,19 +634,31 @@ app.get("/api/stats", isAuthenticated, async (req, res) => {
 // route to retrieve exercises from API
 app.get("/api/exercises/search", isAuthenticated, async (req, res) => {
     try {
-        // Extract search query from URL parameters
         const { query } = req.query;
+        
+        const response = await fetch('https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/dist/exercises.json');
+        
+        if (!response.ok) {
+            throw new Error(`API returned ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        const exercises = data
+            .filter(ex => 
+                ex.name?.toLowerCase().includes(query.toLowerCase()) ||
+                ex.primaryMuscles?.some(m => m.toLowerCase().includes(query.toLowerCase())) ||
+                ex.target?.toLowerCase().includes(query.toLowerCase())
+            )
+            .slice(0, 20)
+            .map(ex => ({
+                exerciseId: ex.id,
+                nameOfExercise: ex.name,
+                muscleGroup: ex.primaryMuscles?.[0] || ex.target || 'General',
+                equipment: ex.equipment || 'Bodyweight',
+                imageURL: ex.images?.[0] || ex.gifUrl || null
+            }));
 
-        // Search exercises by name or muscle group (case-insensitive)
-        let sql = `
-            SELECT exerciseId, nameOfExercise, muscleGroup, equipment, imageURL 
-            FROM exercises 
-            WHERE nameOfExercise LIKE ? OR muscleGroup LIKE ?
-            ORDER BY nameOfExercise
-            LIMIT 20`;
-        const [exercises] = await pool.query(sql, [`%${query}%`, `%${query}%`]);
-
-        // Return search results as JSON
         res.json(exercises);
     }
     catch (error) {
@@ -600,42 +672,56 @@ app.get("/workout/edit/:workoutId", isAuthenticated, async (req, res) => {
     try {
         const workoutId = req.params.workoutId;
         
-        // retrieve workout info
         let sql = `
             SELECT workoutId, userId, date, duration 
             FROM workouts 
             WHERE workoutId = ? AND userId = ?`;
         const [workoutResult] = await pool.query(sql, [workoutId, req.session.userId]);
 
-        // verify workout exists and belongs to user
         if (workoutResult.length === 0) {
             return res.status(404).send("Workout not found or access denied");
         }
 
         const workout = workoutResult[0];
 
-        // retrieve all exercises for this workout
         sql = `
             SELECT wg.groupId, wg.muscleGroup, wg.sets, wg.reps, wg.weight,
-                   e.exerciseId, e.nameOfExercise, e.equipment
+                   wg.exerciseId
             FROM workoutGroups wg
-            JOIN exercises e ON wg.exerciseId = e.exerciseId
             WHERE wg.workoutId = ?
             ORDER BY wg.groupId`;
         const [exerciseGroups] = await pool.query(sql, [workoutId]);
 
-        // Get all available exercises for the exercise library
-        sql = `
-            SELECT exerciseId, nameOfExercise, muscleGroup, equipment 
-            FROM exercises 
-            ORDER BY muscleGroup, nameOfExercise`;
-        const [exercises] = await pool.query(sql);
+        const response = await fetch('https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/dist/exercises.json');
+        
+        if (!response.ok) {
+            throw new Error(`API returned ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        const exercises = data.slice(0, 100).map(ex => ({
+            exerciseId: ex.id,
+            nameOfExercise: ex.name,
+            muscleGroup: ex.primaryMuscles?.[0] || ex.target || 'General',
+            equipment: ex.equipment || 'Bodyweight',
+            imageURL: ex.images?.[0] || ex.gifUrl || null
+        }));
 
-        // render edit workout page
+        const enrichedGroups = exerciseGroups.map(group => {
+            const exercise = exercises.find(e => e.exerciseId === group.exerciseId);
+            return {
+                ...group,
+                nameOfExercise: exercise?.nameOfExercise || 'Unknown Exercise',
+                equipment: exercise?.equipment || '',
+                imageURL: exercise?.imageURL || null
+            };
+        });
+
         res.render("editWorkout", {
             user: req.session,
             workout: workout,
-            exerciseGroups: exerciseGroups,
+            exerciseGroups: enrichedGroups,
             exercises: exercises
         });
     }
@@ -678,10 +764,12 @@ app.post("/workout/edit/:workoutId", isAuthenticated, async (req, res) => {
                 VALUES (?, ?, ?, ?, ?, ?)`;
 
             for (const ex of exercises) {
+                // Use exerciseId 1 as placeholder since we can't use API IDs
+                // The actual exercise info is stored in muscleGroup
                 await pool.query(sql, [
                     workoutId,
                     ex.muscleGroup,
-                    ex.exerciseId,
+                    1, // Placeholder ID that exists in exercises table
                     ex.sets,
                     ex.reps,
                     ex.weight
@@ -696,6 +784,56 @@ app.post("/workout/edit/:workoutId", isAuthenticated, async (req, res) => {
         res.status(500).json({ success: false, error: "Failed to update workout" });
     }
 });
+// app.post("/workout/edit/:workoutId", isAuthenticated, async (req, res) => {
+//     try {
+//         const workoutId = req.params.workoutId;
+//         const { date, duration, exercises } = req.body;
+
+//         // verify workout belongs to this user
+//         let sql = `SELECT userId FROM workouts WHERE workoutId = ?`;
+//         const [workoutCheck] = await pool.query(sql, [workoutId]);
+        
+//         if (workoutCheck.length === 0 || workoutCheck[0].userId !== req.session.userId) {
+//             return res.status(403).json({ success: false, error: "Access denied" });
+//         }
+
+//         // update the date/duration on the workout record
+//         sql = `
+//             UPDATE workouts 
+//             SET date = ?, duration = ?
+//             WHERE workoutId = ? AND userId = ?`;
+//         await pool.query(sql, [date, duration, workoutId, req.session.userId]);
+
+//         // remove all existing exercise groups for this workout
+//         sql = `DELETE FROM workoutGroups WHERE workoutId = ?`;
+//         await pool.query(sql, [workoutId]);
+
+//         // add the updated exercise groups
+//         if (exercises && Array.isArray(exercises)) {
+//             sql = `
+//                 INSERT INTO workoutGroups 
+//                 (workoutId, muscleGroup, exerciseId, sets, reps, weight) 
+//                 VALUES (?, ?, ?, ?, ?, ?)`;
+
+//             for (const ex of exercises) {
+//                 await pool.query(sql, [
+//                     workoutId,
+//                     ex.muscleGroup,
+//                     ex.exerciseId,
+//                     ex.sets,
+//                     ex.reps,
+//                     ex.weight
+//                 ]);
+//             }
+//         }
+
+//         res.json({ success: true, workoutId: workoutId });
+//     }
+//     catch (error) {
+//         console.error("Update workout error:", error);
+//         res.status(500).json({ success: false, error: "Failed to update workout" });
+//     }
+// });
 
 // route to delete a workout
 app.post("/workout/delete/:workoutId", isAuthenticated, async (req, res) => {
@@ -730,4 +868,3 @@ app.use((req, res) => {
 app.listen(3000, ()=>{
     console.log("Express server running")
 })
-
