@@ -475,7 +475,7 @@ SESSION_SECRET=<your-secret-key>
 Database Connection (in index.mjs):
 host: "y5s2h87f6ur56vae.cbetxkdyhwsb.us-east-1.rds.amazonaws.com"
 user: "x961annv2rwlrope"
-password: "yziygibqpk3q352o"
+password: "*************"
 database: "c5dhod81zi9fvecy"
 
 To Run:
