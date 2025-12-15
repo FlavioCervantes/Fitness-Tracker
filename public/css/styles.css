@@ -36,7 +36,7 @@ h1, h2, h3 {
 
 .navbar {
     background: var(--color-primary) !important;
-    padding: 15px 0;
+    padding: 15px 1.5rem;
     border-radius: 4px;
     margin-bottom: 30px;
 }
@@ -44,6 +44,7 @@ h1, h2, h3 {
 .navbar-brand {
     font-size: 1.5rem;
     font-weight: bold;
+    padding-left: 0.5rem;
 }
 
 .navbar a {
@@ -104,6 +105,10 @@ h1, h2, h3 {
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
     margin-bottom: 20px;
+}
+
+.card-body {
+    padding: 1.5rem;
 }
 
 .card:hover {
