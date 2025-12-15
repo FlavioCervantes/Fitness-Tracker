@@ -16,7 +16,7 @@ app.use(express.static("public"));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-// removed duplicate session middleware since we had it twice
+// Sessions 
 app.use(session({
     secret: process.env.SESSION_SECRET || 'fitness-tracker-secret-key-change-in-production',
     resave: false,
@@ -37,7 +37,7 @@ const pool = mysql.createPool({
 
 // verify authentication
 function isAuthenticated(req, res, next) {
-    // ceck if session exists and has userId
+    // check if session exists and has userId
     if (req.session && req.session.userId) {
         return next(); // User is authenticated, proceed to route
     }
