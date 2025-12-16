@@ -84,16 +84,16 @@ INSERT INTO userProgress (userId, chestDiameter, armDiameter, shoulderDiameter, 
 
 -- a template of different workouts
 INSERT INTO exercises (nameOfExercise, muscleGroup, equipment, instructions, imageURL, apiSource) VALUES
-('Barbell Bench Press', 'Chest', 'Barbell', 'Lie on bench, lower bar to chest, press up to full extension', 'https://example.com/bench-press.jpg', 'ExerciseDB'),
-('Dumbbell Bicep Curl', 'Biceps', 'Dumbbells', 'Stand with dumbbells, curl weights up to shoulders, lower slowly', 'https://example.com/bicep-curl.jpg', 'ExerciseDB'),
-('Barbell Squat', 'Legs', 'Barbell', 'Bar on shoulders, squat down until thighs parallel, drive up', 'https://example.com/squat.jpg', 'ExerciseDB'),
-('Pull-ups', 'Back', 'Pull-up Bar', 'Hang from bar, pull body up until chin over bar, lower slowly', 'https://example.com/pullups.jpg', 'ExerciseDB'),
-('Shoulder Press', 'Shoulders', 'Dumbbells', 'Press dumbbells overhead from shoulder height, lower controlled', 'https://example.com/shoulder-press.jpg', 'ExerciseDB'),
-('Deadlift', 'Back', 'Barbell', 'Lift bar from ground to hip level, keep back straight, lower controlled', 'https://example.com/deadlift.jpg', 'ExerciseDB'),
-('Tricep Dips', 'Triceps', 'Dip Bar', 'Lower body by bending elbows, push back up to start', 'https://example.com/dips.jpg', 'ExerciseDB'),
-('Leg Press', 'Legs', 'Leg Press Machine', 'Push platform away with feet, return slowly to start', 'https://example.com/leg-press.jpg', 'ExerciseDB'),
-('Plank', 'Core', 'Bodyweight', 'Hold body straight in push-up position on forearms', 'https://example.com/plank.jpg', 'ExerciseDB'),
-('Running', 'Cardio', 'Treadmill', 'Maintain steady pace for cardiovascular conditioning', 'https://example.com/running.jpg', 'Manual');
+('Barbell Bench Press', 'Chest', 'Barbell', 'Lie on bench, lower bar to chest, press up to full extension', '/uploads/Bar_Bell_Bench_Press', 'ExerciseDB'),
+('Dumbbell Bicep Curl', 'Biceps', 'Dumbbells', 'Stand with dumbbells, curl weights up to shoulders, lower slowly', '/uploads/Dumbbell_Bicep_Curl.jpg', 'ExerciseDB'),
+('Barbell Squat', 'Legs', 'Barbell', 'Bar on shoulders, squat down until thighs parallel, drive up', '/uploads/Bar_Bell_Squat.jpg', 'ExerciseDB'),
+('Pull-ups', 'Back', 'Pull-up Bar', 'Hang from bar, pull body up until chin over bar, lower slowly', '/uploads/Pull_Ups.jpg', 'ExerciseDB'),
+('Shoulder Press', 'Shoulders', 'Dumbbells', 'Press dumbbells overhead from shoulder height, lower controlled', '/uploads/Shoulder_Press.jpg', 'ExerciseDB'),
+('Deadlift', 'Back', 'Barbell', 'Lift bar from ground to hip level, keep back straight, lower controlled', '/uploads/Deadlift.jpg', 'ExerciseDB'),
+('Tricep Dips', 'Triceps', 'Dip Bar', 'Lower body by bending elbows, push back up to start', '/uploads/Tricep_Dips.jpg', 'ExerciseDB'),
+('Leg Press', 'Legs', 'Leg Press Machine', 'Push platform away with feet, return slowly to start', '/uploads/Leg_Press.jpg', 'ExerciseDB'),
+('Plank', 'Core', 'Bodyweight', 'Hold body straight in push-up position on forearms', '/uploads/Plank.jpg', 'ExerciseDB'),
+('Running', 'Cardio', 'Treadmill', 'Maintain steady pace for cardiovascular conditioning', '/uploads/Running.jpg', 'Manual');
 
 -- a log of workouts performed by user
 INSERT INTO workouts (userId, date, duration) VALUES
