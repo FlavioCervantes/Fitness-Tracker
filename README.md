@@ -9,6 +9,7 @@ managing fitness goals with user authentication and external API integration.
 
 Author: Code Busters
 Repository: https://github.com/FlavioCervantes/Fitness-Tracker
+Website: https://fitness-tracker-bptp.onrender.com
 
 
 CORE DEPENDENCIES & TECH STACK
