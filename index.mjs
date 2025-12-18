@@ -672,16 +672,37 @@ app.post("/workout/edit/:workoutId", isAuthenticated, async (req, res) => {
 
         // add the updated exercise groups
         if (exercises && Array.isArray(exercises)) {
-            sql = `
-                INSERT INTO workoutGroups 
-                (workoutId, muscleGroup, exerciseId, sets, reps, weight) 
-                VALUES (?, ?, ?, ?, ?, ?)`;
-
             for (const ex of exercises) {
+                let finalExerciseId = ex.exerciseId;
+                
+                // if exerciseId is 0, this is a custom exercise - create it in the database
+                if (ex.exerciseId == 0 && ex.exerciseName) {
+                    // check if exercise already exists
+                    let checkSql = `SELECT exerciseId FROM exercises WHERE nameOfExercise = ?`;
+                    const [existing] = await pool.query(checkSql, [ex.exerciseName]);
+                    
+                    if (existing.length > 0) {
+                        finalExerciseId = existing[0].exerciseId;
+                    } else {
+                        // insert new custom exercise
+                        let insertSql = `
+                            INSERT INTO exercises (nameOfExercise, muscleGroup, equipment) 
+                            VALUES (?, ?, 'Custom')`;
+                        const [result] = await pool.query(insertSql, [ex.exerciseName, ex.muscleGroup]);
+                        finalExerciseId = result.insertId;
+                    }
+                }
+                
+                // insert into workoutGroups
+                sql = `
+                    INSERT INTO workoutGroups 
+                    (workoutId, muscleGroup, exerciseId, sets, reps, weight) 
+                    VALUES (?, ?, ?, ?, ?, ?)`;
+
                 await pool.query(sql, [
                     workoutId,
                     ex.muscleGroup,
-                    ex.exerciseId,
+                    finalExerciseId,
                     ex.sets,
                     ex.reps,
                     ex.weight
