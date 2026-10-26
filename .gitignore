@@ -1,2 +1,11 @@
-node_modules/
+# Terraform
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+.terraform.lock.hcl
+
+# Env files
 .env
+.env.*
